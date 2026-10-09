@@ -2,13 +2,17 @@
  * MascotAvatar Component
  *
  * Circular agent avatar. Renders the active agent's avatar choice:
- * bundled 3D mascot, emoji, name initials, or a gallery photo.
+ * a ready-made persona portrait, the Tiboo mascot (vector logo),
+ * name initials, an emoji (legacy profiles) or a gallery photo.
  */
 
 import React from 'react';
 import { Image, View, Text, StyleSheet, ImageStyle, StyleProp } from 'react-native';
 import { Colors } from '@/constants/colors';
+import { Typography } from '@/constants/theme';
+import { AGENT_PERSONAS } from '@/constants/agentConfig';
 import { useAgent } from '@/context/AgentContext';
+import TibooLogo from './TibooLogo';
 import { AgentAvatar } from '@/types';
 
 export interface MascotAvatarProps {
@@ -46,14 +50,23 @@ export const MascotAvatar: React.FC<MascotAvatarProps> = ({
 
   const circle = { width: size, height: size, borderRadius: size / 2 };
 
-  if (activeAvatar.type === 'photo' || activeAvatar.type === 'mascot') {
+  if (activeAvatar.type === 'mascot') {
+    return (
+      <View style={[styles.centered, circle, styles.clip, style as any]}>
+        <TibooLogo variant="tile" size={size} />
+      </View>
+    );
+  }
+
+  const persona =
+    activeAvatar.type === 'persona'
+      ? AGENT_PERSONAS.find((p) => p.id === activeAvatar.id) ?? AGENT_PERSONAS[0]
+      : undefined;
+
+  if (persona || activeAvatar.type === 'photo') {
     return (
       <Image
-        source={
-          activeAvatar.type === 'photo'
-            ? { uri: activeAvatar.uri }
-            : require('../../../assets/images/cooper_mascot.jpg')
-        }
+        source={persona ? persona.image : { uri: (activeAvatar as { uri: string }).uri }}
         style={[styles.avatar, circle, style]}
         resizeMode="cover"
       />
@@ -83,7 +96,10 @@ export const MascotAvatar: React.FC<MascotAvatarProps> = ({
 
 const styles = StyleSheet.create({
   avatar: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.primarySubtle,
+  },
+  clip: {
+    overflow: 'hidden',
   },
   centered: {
     alignItems: 'center',
@@ -93,7 +109,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   initials: {
-    fontWeight: '800',
+    fontFamily: Typography.extrabold,
     color: Colors.white,
     letterSpacing: -0.5,
   },

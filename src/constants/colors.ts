@@ -1,67 +1,70 @@
 /**
  * Muse AI Clone - Centralized Design Tokens & Color Palette
- * Primary Color: Modern Tech Blue (#2563EB / #0066FF)
- * Clean White UI theme with rich contrast and accents.
+ * Tiboo "clean" theme: white / very light grey surfaces, near-black text,
+ * and the Tiboo violet (from the logo) reserved for buttons, active
+ * states and the user's chat bubbles.
  */
 
 export const Colors = {
-  // Brand Primary (Blue)
-  primary: '#2563EB',        // Main brand blue
-  primaryDark: '#1D4ED8',    // Pressed/Hover state
-  primaryLight: '#3B82F6',   // Lighter accent
-  primaryGradientStart: '#3B82F6',
-  primaryGradientEnd: '#1D4ED8',
-  primarySubtle: '#EFF6FF',  // 50 shade for chips/backgrounds
-  primaryGlow: 'rgba(37, 99, 235, 0.12)',
-  primaryBorder: '#BFDBFE',  // Light blue border
+  // Brand Primary (Tiboo Violet)
+  primary: '#7623D5',
+  primaryDark: '#5A16B0',
+  primaryLight: '#9B55E6',
+  primaryGradientStart: '#4F17AE',
+  primaryGradientEnd: '#CE64EA',
+  primarySubtle: '#F4EDFD',
+  primaryGlow: 'rgba(118, 35, 213, 0.12)',
+  primaryBorder: '#DCC8F5',
 
   // Neutral / Layout Colors (Clean White Theme)
   white: '#FFFFFF',
   black: '#000000',
-  background: '#FFFFFF',     // Main screen background
-  surface: '#F8FAFC',        // Secondary card background (Slate 50)
-  surfaceElevated: '#FFFFFF',// Elevated cards with shadow
-  surfaceMuted: '#F1F5F9',   // Slate 100
+  background: '#FFFFFF',
+  surface: '#F5F5F7',
+  surfaceElevated: '#FFFFFF',
+  surfaceMuted: '#EFEFF4',
 
   // Text Colors
-  text: '#0F172A',           // Primary text (Slate 900)
-  textPrimary: '#0F172A',    // Slate 900
-  textSecondary: '#475569',  // Slate 600
-  textMuted: '#94A3B8',      // Slate 400
-  textDisabled: '#CBD5E1',   // Slate 300
+  text: '#1D1D1F',
+  textPrimary: '#1D1D1F',
+  textSecondary: '#6E6E73',
+  textMuted: '#A1A1A6',
+  textDisabled: '#D1D1D6',
   textWhite: '#FFFFFF',
-  textLink: '#2563EB',
+  textLink: '#7623D5',
 
   // Border & Dividers
-  border: '#E2E8F0',         // Slate 200
-  borderLight: '#F1F5F9',    // Slate 100
-  borderFocus: '#2563EB',    // Focus state border
-  divider: '#E2E8F0',
+  border: '#E5E5EA',
+  borderLight: '#F2F2F7',
+  borderFocus: '#7623D5',
+  divider: '#E5E5EA',
 
   // Status & Feedback
-  success: '#10B981',        // Emerald 500
-  successLight: '#ECFDF5',
-  warning: '#F59E0B',        // Amber 500
-  warningLight: '#FFFBEB',
-  error: '#EF4444',          // Red 500
-  errorLight: '#FEF2F2',
-  info: '#0EA5E9',           // Sky 500
-  infoLight: '#F0F9FF',
+  success: '#34C759',
+  successLight: '#E9F9EE',
+  warning: '#FF9F0A',
+  warningLight: '#FFF4E5',
+  error: '#FF3B30',
+  errorLight: '#FFEBEA',
+  info: '#0A84FF',
+  infoLight: '#E8F2FF',
 
   // Tab & Chat UI specific tokens
-  tabInactive: '#1E2022',
-  tabActive: '#1E2022',
-  tabActiveBg: '#E6E8EA',
-  chatBubbleUser: '#E8C4B4',
-  chatBubbleAi: '#EEF0F2',
+  tabInactive: '#A1A1A6',
+  tabActive: '#1D1D1F',
+  tabActiveBg: '#F4EDFD',
+  chatBubbleUser: '#7623D5',
+  chatBubbleAi: '#F2F2F7',
   chatBubbleAiBorder: 'transparent',
-  overlay: 'rgba(15, 23, 42, 0.45)',
-  statusBlue: '#2563EB',
-  iconDark: '#1E2022',
-  iconMuted: '#9E9E9E',
-  inputBg: '#FFFFFF',
-  inputBorder: '#E5E7EB',
+  overlay: 'rgba(0, 0, 0, 0.28)',
+  statusBlue: '#7623D5',
+  iconDark: '#1D1D1F',
+  iconMuted: '#A1A1A6',
+  inputBg: '#F5F5F7',
+  inputBorder: '#E5E5EA',
   dockBg: '#FFFFFF',
+  userBubbleText: '#FFFFFF',
+  shadow: '#000000',
 
   // Google Branding
   googleBlue: '#4285F4',
@@ -73,14 +76,14 @@ export const Colors = {
 
   // Dark Scheme Palette (for dark mode compatibility)
   light: {
-    text: '#0F172A',
+    text: '#1D1D1F',
     background: '#FFFFFF',
-    backgroundElement: '#F1F5F9',
-    backgroundSelected: '#EFF6FF',
-    textSecondary: '#475569',
-    tint: '#2563EB',
+    backgroundElement: '#F5F5F7',
+    backgroundSelected: '#F4EDFD',
+    textSecondary: '#6E6E73',
+    tint: '#7623D5',
     card: '#FFFFFF',
-    border: '#E2E8F0',
+    border: '#E5E5EA',
   },
   dark: {
     text: '#F8FAFC',

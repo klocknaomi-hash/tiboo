@@ -8,3 +8,4 @@ export { SidebarDrawer, type SidebarDrawerProps } from './SidebarDrawer';
 export { SettingsMenuModal, type SettingsMenuModalProps } from './SettingsMenuModal';
 export { EditAgentModal, type EditAgentModalProps } from './EditAgentModal';
 
+export { TibooLogo, type TibooLogoProps } from './TibooLogo';

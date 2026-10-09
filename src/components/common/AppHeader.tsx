@@ -12,6 +12,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { MenuTwoLineIcon, MoreHorizontalIcon } from '@hugeicons/core-free-icons';
 import { Colors } from '@/constants/colors';
+import { Typography } from '@/constants/theme';
 import MascotAvatar from './MascotAvatar';
 import { useAgent } from '@/context/AgentContext';
 
@@ -104,7 +105,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 6,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.background,
     zIndex: 10,
   },
   sideCol: {
@@ -119,13 +120,13 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surfaceElevated,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
     ...Platform.select({
       ios: {
-        shadowColor: Colors.black,
+        shadowColor: Colors.shadow,
         shadowOffset: { width: 0, height: 3 },
         shadowOpacity: 0.08,
         shadowRadius: 8,
@@ -145,7 +146,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#0066FF',
+    backgroundColor: Colors.primary,
     borderWidth: 1.5,
     borderColor: Colors.white,
   },
@@ -170,14 +171,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     maxWidth: 180,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surfaceElevated,
     paddingHorizontal: 16,
     paddingVertical: 5,
     borderRadius: 20,
     marginTop: 4,
     ...Platform.select({
       ios: {
-        shadowColor: Colors.black,
+        shadowColor: Colors.shadow,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.07,
         shadowRadius: 6,
@@ -192,7 +193,7 @@ const styles = StyleSheet.create({
   },
   agentNameText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: Typography.bold,
     color: Colors.iconDark,
     letterSpacing: -0.2,
   },

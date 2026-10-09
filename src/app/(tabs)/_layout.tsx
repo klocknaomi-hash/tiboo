@@ -206,16 +206,16 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.background,
   },
   contentContainer: {
     flex: 1,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.background,
   },
   tabBar: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.background,
     borderTopWidth: 1,
-    borderTopColor: '#F0F0F2',
+    borderTopColor: Colors.borderLight,
     height: Platform.OS === 'ios' ? 84 : 70,
     paddingBottom: Platform.OS === 'ios' ? 22 : 10,
     paddingTop: 8,

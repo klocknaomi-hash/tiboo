@@ -101,13 +101,24 @@ export interface PlanData {
 }
 
 /**
- * Agent avatar source: bundled 3D mascot, emoji, name initials, or a photo from the gallery.
+ * Agent avatar source: a ready-made persona, the Tiboo mascot, name initials,
+ * an emoji (legacy saved profiles) or a photo from the gallery.
  */
 export type AgentAvatar =
+  | { type: 'persona'; id: string }
   | { type: 'mascot' }
   | { type: 'initials' }
   | { type: 'emoji'; value: string }
   | { type: 'photo'; uri: string };
+
+/**
+ * Ready-made agent character (3D portrait + suggested name).
+ */
+export interface AgentPersona {
+  id: string;
+  name: string;
+  image: number;
+}
 
 /**
  * Agent Mascot Customization parameters

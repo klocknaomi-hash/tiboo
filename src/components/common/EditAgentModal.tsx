@@ -3,7 +3,8 @@
  *
  * Agent personalization modal:
  * - Live avatar preview
- * - Avatar picker: 3D mascot, initials, emoji, or photo from the gallery
+ * - Avatar picker: ready-made personas (Leo, Chloé, Amir, Kaya), Tiboo mascot,
+ *   initials, or photo from the gallery
  * - Agent name, role and greeting inputs
  * - Accent color selector
  * - Reset to defaults, Cancel & Save actions
@@ -26,7 +27,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { Cancel01Icon, CheckmarkCircle02Icon, Image01Icon } from '@hugeicons/core-free-icons';
 import { Colors } from '@/constants/colors';
-import { AGENT_EMOJI_AVATARS, AGENT_THEME_COLORS } from '@/constants/agentConfig';
+import { Typography } from '@/constants/theme';
+import { AGENT_PERSONAS, AGENT_THEME_COLORS } from '@/constants/agentConfig';
 import MascotAvatar from './MascotAvatar';
 import { showToast } from '@/context/ToastContext';
 import { useAgent } from '@/context/AgentContext';
@@ -39,6 +41,7 @@ export interface EditAgentModalProps {
 
 const isSameAvatar = (a: AgentAvatar, b: AgentAvatar) =>
   a.type === b.type &&
+  (a.type !== 'persona' || a.id === (b as typeof a).id) &&
   (a.type !== 'emoji' || a.value === (b as typeof a).value) &&
   (a.type !== 'photo' || a.uri === (b as typeof a).uri);
 
@@ -94,10 +97,21 @@ export const EditAgentModal: React.FC<EditAgentModalProps> = ({ visible, onClose
   };
 
   const avatarOptions: AgentAvatar[] = [
+    ...AGENT_PERSONAS.map((p): AgentAvatar => ({ type: 'persona', id: p.id })),
     { type: 'mascot' },
     { type: 'initials' },
-    ...AGENT_EMOJI_AVATARS.map((value): AgentAvatar => ({ type: 'emoji', value })),
   ];
+
+  // Picking a persona also suggests its name, unless a custom name was typed
+  const handleSelectAvatar = (option: AgentAvatar) => {
+    setAvatar(option);
+    if (option.type !== 'persona') return;
+    const persona = AGENT_PERSONAS.find((p) => p.id === option.id);
+    const trimmed = name.trim();
+    if (persona && (!trimmed || AGENT_PERSONAS.some((p) => p.name === trimmed))) {
+      setName(persona.name);
+    }
+  };
 
   return (
     <Modal
@@ -172,7 +186,7 @@ export const EditAgentModal: React.FC<EditAgentModalProps> = ({ visible, onClose
                               styles.avatarOption,
                               isSelected && { borderColor: selectedColor },
                             ]}
-                            onPress={() => setAvatar(option)}
+                            onPress={() => handleSelectAvatar(option)}
                             activeOpacity={0.8}>
                             <MascotAvatar
                               size={40}
@@ -290,7 +304,7 @@ export const EditAgentModal: React.FC<EditAgentModalProps> = ({ visible, onClose
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: Colors.overlay,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
@@ -303,12 +317,12 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 360,
     maxHeight: '88%',
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surfaceElevated,
     borderRadius: 20,
     padding: 20,
     ...Platform.select({
       ios: {
-        shadowColor: Colors.black,
+        shadowColor: Colors.shadow,
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.15,
         shadowRadius: 20,
@@ -329,7 +343,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: Typography.bold,
     color: Colors.iconDark,
     letterSpacing: -0.2,
   },
@@ -337,7 +351,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -354,12 +368,13 @@ const styles = StyleSheet.create({
   previewName: {
     marginTop: 8,
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: Typography.bold,
     color: Colors.iconDark,
   },
   previewSubtitle: {
     marginTop: 2,
     fontSize: 12,
+    fontFamily: Typography.regular,
     color: Colors.iconMuted,
   },
   avatarRow: {
@@ -376,7 +391,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   photoOption: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.surface,
   },
   inputGroup: {
     marginTop: 8,
@@ -384,22 +399,22 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 11,
-    fontWeight: '600',
+    fontFamily: Typography.semibold,
     color: Colors.iconMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
     marginBottom: 6,
   },
   input: {
-    backgroundColor: '#F7F8FA',
+    backgroundColor: Colors.surface,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: 15,
-    fontWeight: '500',
+    fontFamily: Typography.medium,
     color: Colors.iconDark,
     borderWidth: 1,
-    borderColor: '#ECEEF0',
+    borderColor: Colors.border,
   },
   multilineInput: {
     minHeight: 64,
@@ -428,7 +443,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.white,
     ...Platform.select({
       ios: {
-        shadowColor: Colors.black,
+        shadowColor: Colors.shadow,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 3,
@@ -445,7 +460,7 @@ const styles = StyleSheet.create({
   },
   resetText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: Typography.semibold,
     color: Colors.iconMuted,
   },
   actionRow: {
@@ -457,13 +472,13 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 42,
     borderRadius: 21,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cancelText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: Typography.semibold,
     color: Colors.iconDark,
   },
   saveBtn: {
@@ -475,7 +490,7 @@ const styles = StyleSheet.create({
   },
   saveText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: Typography.bold,
     color: Colors.white,
   },
 });
