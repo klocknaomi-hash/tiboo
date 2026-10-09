@@ -23,6 +23,7 @@ import {
   PlayIcon,
 } from '@hugeicons/core-free-icons';
 import { Colors } from '@/constants/colors';
+import { Typography } from '@/constants/theme';
 import { TASK_GOALS } from '@/constants/dummyData';
 import { TaskGoalItem } from '@/types';
 import { showToast } from '@/context/ToastContext';
@@ -131,7 +132,7 @@ export default function TasksScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.background,
   },
   scrollArea: {
     flex: 1,
@@ -149,7 +150,7 @@ const styles = StyleSheet.create({
   },
   pageTitle: {
     fontSize: 28,
-    fontWeight: '700',
+    fontFamily: Typography.bold,
     color: Colors.iconDark,
     letterSpacing: -0.5,
     flex: 1,
@@ -166,7 +167,7 @@ const styles = StyleSheet.create({
   },
   newGoalText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: Typography.bold,
     color: Colors.white,
   },
   taskRow: {
@@ -188,7 +189,7 @@ const styles = StyleSheet.create({
   },
   taskTitle: {
     fontSize: 15.5,
-    fontWeight: '700',
+    fontFamily: Typography.bold,
     color: Colors.iconDark,
     lineHeight: 21,
     letterSpacing: -0.2,
@@ -210,18 +211,19 @@ const styles = StyleSheet.create({
   },
   taskSchedule: {
     fontSize: 13,
-    color: '#707070',
-    fontWeight: '500',
+    color: Colors.textSecondary,
+    fontFamily: Typography.medium,
     letterSpacing: -0.1,
   },
   metaDot: {
     fontSize: 12,
+    fontFamily: Typography.regular,
     color: Colors.textMuted,
   },
   executionsText: {
     fontSize: 13,
-    color: '#707070',
-    fontWeight: '500',
+    color: Colors.textSecondary,
+    fontFamily: Typography.medium,
   },
   actionsCol: {
     alignItems: 'flex-end',
@@ -240,12 +242,12 @@ const styles = StyleSheet.create({
   },
   runManualText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: Typography.bold,
     color: Colors.primary,
   },
   divider: {
     height: 1,
-    backgroundColor: '#F0F0F2',
+    backgroundColor: Colors.borderLight,
     marginHorizontal: 20,
   },
 });

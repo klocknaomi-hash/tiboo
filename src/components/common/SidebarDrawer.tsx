@@ -29,6 +29,7 @@ import {
   Edit02Icon,
 } from '@hugeicons/core-free-icons';
 import { Colors } from '@/constants/colors';
+import { Typography } from '@/constants/theme';
 import { SIDE_CHATS } from '@/constants/dummyData';
 import { SideChatItem } from '@/types';
 import { showToast } from '@/context/ToastContext';
@@ -244,11 +245,11 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.background,
   },
   safeContainer: {
     flex: 1,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -263,7 +264,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 17,
-    fontWeight: '700',
+    fontFamily: Typography.bold,
     color: Colors.iconDark,
     letterSpacing: -0.2,
   },
@@ -271,14 +272,14 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surfaceElevated,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#F0F0F2',
+    borderColor: Colors.borderLight,
     ...Platform.select({
       ios: {
-        shadowColor: Colors.black,
+        shadowColor: Colors.shadowWarm,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.06,
         shadowRadius: 6,
@@ -287,7 +288,7 @@ const styles = StyleSheet.create({
         elevation: 2,
       },
       web: {
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+        boxShadow: '0 2px 8px rgba(92, 64, 51, 0.06)',
       },
     }),
   },
@@ -306,12 +307,12 @@ const styles = StyleSheet.create({
   },
   mainChatText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: Typography.bold,
     color: Colors.iconDark,
   },
   divider: {
     height: 1,
-    backgroundColor: '#F0F0F2',
+    backgroundColor: Colors.borderLight,
     width: '100%',
   },
   scrollArea: {
@@ -330,7 +331,7 @@ const styles = StyleSheet.create({
   },
   sectionHeaderText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: Typography.semibold,
     color: Colors.iconMuted, // #8E8E93 / #9E9E9E
   },
   trashBtn: {
@@ -348,7 +349,7 @@ const styles = StyleSheet.create({
   },
   chatRowText: {
     fontSize: 16,
-    fontWeight: '400',
+    fontFamily: Typography.regular,
     color: Colors.iconDark,
     flex: 1,
     paddingRight: 10,
@@ -357,7 +358,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#0066FF',
+    backgroundColor: Colors.primary,
   },
   bottomToolbar: {
     flexDirection: 'row',
@@ -366,15 +367,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: Platform.OS === 'ios' ? 12 : 16,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surfaceElevated,
   },
   searchCapsule: {
     flex: 1,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#F5F6F8',
+    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: '#ECECEC',
+    borderColor: Colors.border,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 14,
@@ -384,6 +385,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 15,
+    fontFamily: Typography.regular,
     color: Colors.iconDark,
     paddingVertical: 0,
   },

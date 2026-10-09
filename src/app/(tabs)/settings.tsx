@@ -26,6 +26,7 @@ import {
   Logout01Icon,
 } from '@hugeicons/core-free-icons';
 import { Colors } from '@/constants/colors';
+import { Typography } from '@/constants/theme';
 import { SETTINGS_PLAN_DATA } from '@/constants/dummyData';
 import { showToast } from '@/context/ToastContext';
 
@@ -153,7 +154,7 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.background,
   },
   scrollView: {
     flex: 1,
@@ -168,18 +169,18 @@ const styles = StyleSheet.create({
   },
   pageTitle: {
     fontSize: 28,
-    fontWeight: '700',
+    fontFamily: Typography.bold,
     color: Colors.iconDark,
     letterSpacing: -0.5,
   },
   planCard: {
     marginHorizontal: 20,
     marginBottom: 20,
-    backgroundColor: '#FAFAFB',
+    backgroundColor: Colors.surface,
     borderRadius: 20,
     padding: 18,
     borderWidth: 1,
-    borderColor: '#ECEEF0',
+    borderColor: Colors.border,
   },
   planHeaderRow: {
     flexDirection: 'row',
@@ -189,30 +190,31 @@ const styles = StyleSheet.create({
   },
   planTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: Typography.bold,
     color: Colors.iconDark,
     letterSpacing: -0.2,
   },
   planUsageText: {
     fontSize: 13,
-    fontWeight: '700',
-    color: '#0066FF',
+    fontFamily: Typography.bold,
+    color: Colors.primary,
   },
   planResetText: {
     fontSize: 12.5,
-    color: '#707070',
+    fontFamily: Typography.regular,
+    color: Colors.textSecondary,
     marginBottom: 12,
   },
   progressBarTrack: {
     height: 6,
-    backgroundColor: '#E6E8EA',
+    backgroundColor: Colors.tabActiveBg,
     borderRadius: 3,
     overflow: 'hidden',
     marginBottom: 14,
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#0066FF',
+    backgroundColor: Colors.primary,
     borderRadius: 3,
   },
   upgradeBtn: {
@@ -220,16 +222,16 @@ const styles = StyleSheet.create({
   },
   upgradeBtnText: {
     fontSize: 13.5,
-    fontWeight: '700',
-    color: '#0066FF',
+    fontFamily: Typography.bold,
+    color: Colors.primary,
   },
   groupCard: {
     marginHorizontal: 20,
     marginBottom: 16,
-    backgroundColor: '#FAFAFB',
+    backgroundColor: Colors.surface,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#ECEEF0',
+    borderColor: Colors.border,
     overflow: 'hidden',
   },
   listItem: {
@@ -245,13 +247,13 @@ const styles = StyleSheet.create({
   listLabel: {
     flex: 1,
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Typography.semibold,
     color: Colors.iconDark,
     letterSpacing: -0.2,
   },
   rowDivider: {
     height: 1,
-    backgroundColor: '#F0F0F2',
+    backgroundColor: Colors.borderLight,
     marginLeft: 48,
   },
 });

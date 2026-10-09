@@ -30,6 +30,7 @@ import {
   RefreshIcon,
 } from '@hugeicons/core-free-icons';
 import { Colors } from '@/constants/colors';
+import { Typography } from '@/constants/theme';
 import { showToast } from '@/context/ToastContext';
 
 export interface SettingsMenuModalProps {
@@ -179,7 +180,7 @@ export const SettingsMenuModal: React.FC<SettingsMenuModalProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.08)',
+    backgroundColor: Colors.overlay,
     justifyContent: 'flex-start',
     alignItems: 'flex-end',
     paddingTop: Platform.OS === 'ios' ? 64 : 56,
@@ -187,7 +188,7 @@ const styles = StyleSheet.create({
   },
   dropdownCard: {
     width: 200,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surfaceElevated,
     borderRadius: 14,
     paddingVertical: 6,
     paddingHorizontal: 5,
@@ -195,7 +196,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     ...Platform.select({
       ios: {
-        shadowColor: Colors.black,
+        shadowColor: Colors.shadowWarm,
         shadowOffset: { width: 0, height: 6 },
         shadowOpacity: 0.12,
         shadowRadius: 16,
@@ -204,7 +205,7 @@ const styles = StyleSheet.create({
         elevation: 8,
       },
       web: {
-        boxShadow: '0 8px 24px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(15, 23, 42, 0.04)',
+        boxShadow: '0 8px 24px rgba(92, 64, 51, 0.12), 0 2px 6px rgba(92, 64, 51, 0.04)',
       },
     }),
   },
@@ -221,13 +222,13 @@ const styles = StyleSheet.create({
   },
   itemText: {
     fontSize: 13.5,
-    fontWeight: '500',
+    fontFamily: Typography.medium,
     color: Colors.textPrimary,
     letterSpacing: -0.2,
   },
   dangerText: {
     color: Colors.error,
-    fontWeight: '500',
+    fontFamily: Typography.medium,
   },
   divider: {
     height: 1,

@@ -8,6 +8,7 @@
 import React from 'react';
 import { Image, View, Text, StyleSheet, ImageStyle, StyleProp } from 'react-native';
 import { Colors } from '@/constants/colors';
+import { Typography } from '@/constants/theme';
 import { useAgent } from '@/context/AgentContext';
 import { AgentAvatar } from '@/types';
 
@@ -83,7 +84,7 @@ export const MascotAvatar: React.FC<MascotAvatarProps> = ({
 
 const styles = StyleSheet.create({
   avatar: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.surface,
   },
   centered: {
     alignItems: 'center',
@@ -93,7 +94,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   initials: {
-    fontWeight: '800',
+    fontFamily: Typography.extrabold,
     color: Colors.white,
     letterSpacing: -0.5,
   },

@@ -28,6 +28,7 @@ import {
   SentIcon,
 } from '@hugeicons/core-free-icons';
 import { Colors } from '@/constants/colors';
+import { Typography } from '@/constants/theme';
 import { INITIAL_CHAT_MESSAGES } from '@/constants/dummyData';
 import { ChatMessage } from '@/types';
 import { showToast } from '@/context/ToastContext';
@@ -198,7 +199,7 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.background,
   },
   content: {
     flex: 1,
@@ -221,15 +222,15 @@ const styles = StyleSheet.create({
     marginVertical: 14,
   },
   dateBadge: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.surface,
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 12,
   },
   dateBadgeText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#888',
+    fontFamily: Typography.semibold,
+    color: Colors.textMuted,
   },
   messageRow: {
     marginBottom: 12,
@@ -250,44 +251,47 @@ const styles = StyleSheet.create({
     maxWidth: '82%',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderRadius: 20,
+    borderRadius: 24,
   },
   userBubble: {
     backgroundColor: Colors.chatBubbleUser,
-    borderBottomRightRadius: 6,
+    borderBottomRightRadius: 8,
   },
   agentBubble: {
     backgroundColor: Colors.chatBubbleAi,
-    borderBottomLeftRadius: 6,
+    borderWidth: 1,
+    borderColor: Colors.chatBubbleAiBorder,
+    borderBottomLeftRadius: 8,
   },
   bubbleText: {
     fontSize: 15.5,
+    fontFamily: Typography.regular,
     lineHeight: 22,
     letterSpacing: -0.1,
   },
   userBubbleText: {
-    color: '#3B2318',
-    fontWeight: '500',
+    color: Colors.userBubbleText,
+    fontFamily: Typography.medium,
   },
   agentBubbleText: {
     color: Colors.iconDark,
-    fontWeight: '400',
+    fontFamily: Typography.regular,
   },
   inputWrapper: {
     paddingHorizontal: 16,
     paddingBottom: Platform.OS === 'ios' ? 12 : 10,
     paddingTop: 6,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.background,
   },
   inputBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.surface,
     borderRadius: 26,
     paddingHorizontal: 8,
     paddingVertical: 6,
     borderWidth: 1,
-    borderColor: '#ECEEF0',
+    borderColor: Colors.border,
   },
   circleBtn: {
     width: 38,
@@ -299,6 +303,7 @@ const styles = StyleSheet.create({
   textInput: {
     flex: 1,
     fontSize: 15,
+    fontFamily: Typography.regular,
     color: Colors.iconDark,
     paddingHorizontal: 10,
     paddingVertical: Platform.OS === 'ios' ? 8 : 4,

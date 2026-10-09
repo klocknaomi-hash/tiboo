@@ -26,6 +26,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { Cancel01Icon, CheckmarkCircle02Icon, Image01Icon } from '@hugeicons/core-free-icons';
 import { Colors } from '@/constants/colors';
+import { Typography } from '@/constants/theme';
 import { AGENT_EMOJI_AVATARS, AGENT_THEME_COLORS } from '@/constants/agentConfig';
 import MascotAvatar from './MascotAvatar';
 import { showToast } from '@/context/ToastContext';
@@ -290,7 +291,7 @@ export const EditAgentModal: React.FC<EditAgentModalProps> = ({ visible, onClose
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: Colors.overlay,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
@@ -303,12 +304,12 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 360,
     maxHeight: '88%',
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surfaceElevated,
     borderRadius: 20,
     padding: 20,
     ...Platform.select({
       ios: {
-        shadowColor: Colors.black,
+        shadowColor: Colors.shadowWarm,
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.15,
         shadowRadius: 20,
@@ -317,7 +318,7 @@ const styles = StyleSheet.create({
         elevation: 8,
       },
       web: {
-        boxShadow: '0 12px 32px rgba(0, 0, 0, 0.15)',
+        boxShadow: '0 12px 32px rgba(92, 64, 51, 0.15)',
       },
     }),
   },
@@ -329,7 +330,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: Typography.bold,
     color: Colors.iconDark,
     letterSpacing: -0.2,
   },
@@ -337,7 +338,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -354,12 +355,13 @@ const styles = StyleSheet.create({
   previewName: {
     marginTop: 8,
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: Typography.bold,
     color: Colors.iconDark,
   },
   previewSubtitle: {
     marginTop: 2,
     fontSize: 12,
+    fontFamily: Typography.regular,
     color: Colors.iconMuted,
   },
   avatarRow: {
@@ -376,7 +378,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   photoOption: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.surface,
   },
   inputGroup: {
     marginTop: 8,
@@ -384,22 +386,22 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 11,
-    fontWeight: '600',
+    fontFamily: Typography.semibold,
     color: Colors.iconMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
     marginBottom: 6,
   },
   input: {
-    backgroundColor: '#F7F8FA',
+    backgroundColor: Colors.surface,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: 15,
-    fontWeight: '500',
+    fontFamily: Typography.medium,
     color: Colors.iconDark,
     borderWidth: 1,
-    borderColor: '#ECEEF0',
+    borderColor: Colors.border,
   },
   multilineInput: {
     minHeight: 64,
@@ -428,7 +430,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.white,
     ...Platform.select({
       ios: {
-        shadowColor: Colors.black,
+        shadowColor: Colors.shadowWarm,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 3,
@@ -445,7 +447,7 @@ const styles = StyleSheet.create({
   },
   resetText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: Typography.semibold,
     color: Colors.iconMuted,
   },
   actionRow: {
@@ -457,13 +459,13 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 42,
     borderRadius: 21,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cancelText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: Typography.semibold,
     color: Colors.iconDark,
   },
   saveBtn: {
@@ -475,7 +477,7 @@ const styles = StyleSheet.create({
   },
   saveText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: Typography.bold,
     color: Colors.white,
   },
 });

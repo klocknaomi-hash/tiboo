@@ -1,67 +1,72 @@
 /**
  * Muse AI Clone - Centralized Design Tokens & Color Palette
- * Primary Color: Modern Tech Blue (#2563EB / #0066FF)
- * Clean White UI theme with rich contrast and accents.
+ * "Soft & warm" theme: cream backgrounds, terracotta primary,
+ * peach / sage pastel accents and warm brown text.
  */
 
 export const Colors = {
-  // Brand Primary (Blue)
-  primary: '#2563EB',        // Main brand blue
-  primaryDark: '#1D4ED8',    // Pressed/Hover state
-  primaryLight: '#3B82F6',   // Lighter accent
-  primaryGradientStart: '#3B82F6',
-  primaryGradientEnd: '#1D4ED8',
-  primarySubtle: '#EFF6FF',  // 50 shade for chips/backgrounds
-  primaryGlow: 'rgba(37, 99, 235, 0.12)',
-  primaryBorder: '#BFDBFE',  // Light blue border
+  // Brand Primary (Terracotta)
+  primary: '#C8734F',
+  primaryDark: '#A95C3B',
+  primaryLight: '#E0946F',
+  primaryGradientStart: '#E0946F',
+  primaryGradientEnd: '#C8734F',
+  primarySubtle: '#FBEDE5',
+  primaryGlow: 'rgba(200, 115, 79, 0.16)',
+  primaryBorder: '#F2CDB9',
 
-  // Neutral / Layout Colors (Clean White Theme)
+  // Neutral / Layout Colors (Warm Cream Theme)
   white: '#FFFFFF',
   black: '#000000',
-  background: '#FFFFFF',     // Main screen background
-  surface: '#F8FAFC',        // Secondary card background (Slate 50)
-  surfaceElevated: '#FFFFFF',// Elevated cards with shadow
-  surfaceMuted: '#F1F5F9',   // Slate 100
+  background: '#FBF7F2',
+  surface: '#F6EFE7',
+  surfaceElevated: '#FFFDF9',
+  surfaceMuted: '#F1E8DD',
 
   // Text Colors
-  text: '#0F172A',           // Primary text (Slate 900)
-  textPrimary: '#0F172A',    // Slate 900
-  textSecondary: '#475569',  // Slate 600
-  textMuted: '#94A3B8',      // Slate 400
-  textDisabled: '#CBD5E1',   // Slate 300
+  text: '#3A2E26',
+  textPrimary: '#3A2E26',
+  textSecondary: '#6E6058',
+  textMuted: '#A39488',
+  textDisabled: '#D6CABE',
   textWhite: '#FFFFFF',
-  textLink: '#2563EB',
+  textLink: '#C8734F',
 
   // Border & Dividers
-  border: '#E2E8F0',         // Slate 200
-  borderLight: '#F1F5F9',    // Slate 100
-  borderFocus: '#2563EB',    // Focus state border
-  divider: '#E2E8F0',
+  border: '#EADFD3',
+  borderLight: '#F2EAE0',
+  borderFocus: '#C8734F',
+  divider: '#EADFD3',
 
   // Status & Feedback
-  success: '#10B981',        // Emerald 500
-  successLight: '#ECFDF5',
-  warning: '#F59E0B',        // Amber 500
-  warningLight: '#FFFBEB',
-  error: '#EF4444',          // Red 500
-  errorLight: '#FEF2F2',
-  info: '#0EA5E9',           // Sky 500
-  infoLight: '#F0F9FF',
+  success: '#7FA07A',
+  successLight: '#E8EFE6',
+  warning: '#E0A458',
+  warningLight: '#FBF0DF',
+  error: '#D46A5E',
+  errorLight: '#FBE9E6',
+  info: '#7A9CB8',
+  infoLight: '#EAF0F5',
 
   // Tab & Chat UI specific tokens
-  tabInactive: '#1E2022',
-  tabActive: '#1E2022',
-  tabActiveBg: '#E6E8EA',
-  chatBubbleUser: '#E8C4B4',
-  chatBubbleAi: '#EEF0F2',
-  chatBubbleAiBorder: 'transparent',
-  overlay: 'rgba(15, 23, 42, 0.45)',
-  statusBlue: '#2563EB',
-  iconDark: '#1E2022',
-  iconMuted: '#9E9E9E',
-  inputBg: '#FFFFFF',
-  inputBorder: '#E5E7EB',
-  dockBg: '#FFFFFF',
+  tabInactive: '#A39488',
+  tabActive: '#3A2E26',
+  tabActiveBg: '#F1E4D6',
+  chatBubbleUser: '#F6D5C3',
+  chatBubbleAi: '#FFFDF9',
+  chatBubbleAiBorder: '#EFE5DA',
+  overlay: 'rgba(58, 46, 38, 0.35)',
+  statusBlue: '#E07A5F',
+  iconDark: '#3A2E26',
+  iconMuted: '#A39488',
+  inputBg: '#FFFDF9',
+  inputBorder: '#EADFD3',
+  dockBg: '#FFFDF9',
+  userBubbleText: '#4A2C1E',
+  shadowWarm: '#5C4033',
+  sage: '#7FA07A',
+  sageSubtle: '#E8EFE6',
+  peach: '#F2B79F',
 
   // Google Branding
   googleBlue: '#4285F4',
@@ -73,14 +78,14 @@ export const Colors = {
 
   // Dark Scheme Palette (for dark mode compatibility)
   light: {
-    text: '#0F172A',
-    background: '#FFFFFF',
-    backgroundElement: '#F1F5F9',
-    backgroundSelected: '#EFF6FF',
-    textSecondary: '#475569',
-    tint: '#2563EB',
-    card: '#FFFFFF',
-    border: '#E2E8F0',
+    text: '#3A2E26',
+    background: '#FBF7F2',
+    backgroundElement: '#F6EFE7',
+    backgroundSelected: '#FBEDE5',
+    textSecondary: '#6E6058',
+    tint: '#C8734F',
+    card: '#FFFDF9',
+    border: '#EADFD3',
   },
   dark: {
     text: '#F8FAFC',

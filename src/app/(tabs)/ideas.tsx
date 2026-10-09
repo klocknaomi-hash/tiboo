@@ -14,6 +14,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Colors } from '@/constants/colors';
+import { Typography } from '@/constants/theme';
 import { IDEA_ITEMS } from '@/constants/dummyData';
 import { showToast } from '@/context/ToastContext';
 
@@ -61,7 +62,7 @@ export default function IdeasScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.background,
   },
   scrollArea: {
     flex: 1,
@@ -76,7 +77,7 @@ const styles = StyleSheet.create({
   },
   pageTitle: {
     fontSize: 28,
-    fontWeight: '700',
+    fontFamily: Typography.bold,
     color: Colors.iconDark,
     letterSpacing: -0.5,
   },
@@ -96,28 +97,29 @@ const styles = StyleSheet.create({
   },
   iconEmoji: {
     fontSize: 34,
+    fontFamily: Typography.regular,
   },
   textContainer: {
     flex: 1,
   },
   ideaTitle: {
     fontSize: 16.5,
-    fontWeight: '700',
+    fontFamily: Typography.bold,
     color: Colors.iconDark,
     lineHeight: 22,
     letterSpacing: -0.2,
   },
   ideaDescription: {
     fontSize: 14,
-    fontWeight: '400',
-    color: '#707070',
+    fontFamily: Typography.regular,
+    color: Colors.textSecondary,
     lineHeight: 20,
     marginTop: 6,
     letterSpacing: -0.1,
   },
   divider: {
     height: 1,
-    backgroundColor: '#F0F0F2',
+    backgroundColor: Colors.borderLight,
     marginHorizontal: 20,
   },
 });

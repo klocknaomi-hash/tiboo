@@ -19,6 +19,7 @@ import Svg, { Path } from 'react-native-svg';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { AiSparklesIcon } from '@hugeicons/core-free-icons';
 import { Colors } from '@/constants/colors';
+import { Typography } from '@/constants/theme';
 import { useRouter } from 'expo-router';
 import { showToast } from '@/context/ToastContext';
 import { APP_BRAND } from '@/constants/agentConfig';
@@ -61,17 +62,20 @@ export default function SignInScreen() {
       <View style={styles.content}>
         {/* Center Hero: Muse AI Brand Emblem & Wordmark */}
         <View style={styles.logoWrapper}>
-          {/* Ambient Glow Halo */}
-          <View style={styles.glowRing} />
+          {/* Soft pastel blobs */}
+          <View style={[styles.blob, styles.blobPeach]} />
+          <View style={[styles.blob, styles.blobSage]} />
 
-          {/* Elevated Circular Emblem */}
-          <View style={styles.iconContainer}>
-            <HugeiconsIcon
-              icon={AiSparklesIcon}
-              size={40}
-              color={Colors.white}
-              strokeWidth={1.75}
-            />
+          {/* Ambient Glow Halo around the Emblem */}
+          <View style={styles.glowRing}>
+            <View style={styles.iconContainer}>
+              <HugeiconsIcon
+                icon={AiSparklesIcon}
+                size={40}
+                color={Colors.white}
+                strokeWidth={1.75}
+              />
+            </View>
           </View>
 
           {/* Brand Wordmark */}
@@ -79,6 +83,7 @@ export default function SignInScreen() {
             <Text style={styles.brandName}>{APP_BRAND.name}</Text>
             <Text style={styles.aiText}> {APP_BRAND.suffix}</Text>
           </View>
+          <Text style={styles.tagline}>Your gentle companion for everyday goals</Text>
         </View>
 
         {/* Bottom Action: Google Sign-In Button */}
@@ -113,7 +118,7 @@ export default function SignInScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.background,
   },
   content: {
     flex: 1,
@@ -132,12 +137,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   glowRing: {
-    position: 'absolute',
-    top: -10,
-    width: 104,
-    height: 104,
-    borderRadius: 52,
+    width: 116,
+    height: 116,
+    borderRadius: 58,
     backgroundColor: Colors.primaryGlow,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  blob: {
+    position: 'absolute',
+    borderRadius: 999,
+    opacity: 0.55,
+  },
+  blobPeach: {
+    width: 180,
+    height: 180,
+    backgroundColor: Colors.peach,
+    top: '18%',
+    left: -70,
+  },
+  blobSage: {
+    width: 150,
+    height: 150,
+    backgroundColor: Colors.sageSubtle,
+    bottom: '22%',
+    right: -60,
+  },
+  tagline: {
+    marginTop: 10,
+    fontSize: 15,
+    fontFamily: Typography.medium,
+    color: Colors.textSecondary,
+    textAlign: 'center',
   },
   iconContainer: {
     width: 84,
@@ -151,7 +183,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.35,
     shadowRadius: 20,
     elevation: 10,
-    marginBottom: 18,
   },
   brandRow: {
     flexDirection: 'row',
@@ -160,13 +191,13 @@ const styles = StyleSheet.create({
   },
   brandName: {
     fontSize: 34,
-    fontWeight: '800',
+    fontFamily: Typography.extrabold,
     color: Colors.textPrimary,
     letterSpacing: -0.6,
   },
   aiText: {
     fontSize: 34,
-    fontWeight: '800',
+    fontFamily: Typography.extrabold,
     color: Colors.primary,
     letterSpacing: -0.6,
   },
@@ -175,16 +206,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   button: {
-    height: 54,
-    backgroundColor: Colors.white,
+    height: 56,
+    backgroundColor: Colors.surfaceElevated,
     borderWidth: 1.5,
     borderColor: Colors.border,
-    borderRadius: 16,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 24,
     width: '100%',
-    shadowColor: Colors.black,
+    shadowColor: Colors.shadowWarm,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
@@ -208,7 +239,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: Typography.bold,
     color: Colors.textPrimary,
     letterSpacing: -0.2,
   },
