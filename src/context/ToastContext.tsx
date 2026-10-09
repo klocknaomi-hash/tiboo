@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     gap: 8,
     ...Platform.select({
       ios: {
-        shadowColor: Colors.shadowWarm,
+        shadowColor: Colors.shadow,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.2,
         shadowRadius: 10,
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
         elevation: 6,
       },
       web: {
-        boxShadow: '0 6px 20px rgba(92, 64, 51, 0.25)',
+        boxShadow: '0 6px 20px rgba(0, 0, 0, 0.25)',
       },
     }),
   },

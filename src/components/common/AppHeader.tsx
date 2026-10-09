@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     ...Platform.select({
       ios: {
-        shadowColor: Colors.shadowWarm,
+        shadowColor: Colors.shadow,
         shadowOffset: { width: 0, height: 3 },
         shadowOpacity: 0.08,
         shadowRadius: 8,
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
         elevation: 3,
       },
       web: {
-        boxShadow: '0 3px 12px rgba(92, 64, 51, 0.07)',
+        boxShadow: '0 3px 12px rgba(0, 0, 0, 0.07)',
       },
     }),
   },
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     ...Platform.select({
       ios: {
-        shadowColor: Colors.shadowWarm,
+        shadowColor: Colors.shadow,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.07,
         shadowRadius: 6,
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
         elevation: 2,
       },
       web: {
-        boxShadow: '0 2px 8px rgba(92, 64, 51, 0.06)',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
       },
     }),
   },

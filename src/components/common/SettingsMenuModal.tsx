@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     ...Platform.select({
       ios: {
-        shadowColor: Colors.shadowWarm,
+        shadowColor: Colors.shadow,
         shadowOffset: { width: 0, height: 6 },
         shadowOpacity: 0.12,
         shadowRadius: 16,
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
         elevation: 8,
       },
       web: {
-        boxShadow: '0 8px 24px rgba(92, 64, 51, 0.12), 0 2px 6px rgba(92, 64, 51, 0.04)',
+        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04)',
       },
     }),
   },

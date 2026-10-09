@@ -35,6 +35,7 @@ import { SideChatItem } from '@/types';
 import { showToast } from '@/context/ToastContext';
 import { useAgent } from '@/context/AgentContext';
 import MascotAvatar from './MascotAvatar';
+import TibooLogo from './TibooLogo';
 
 export interface SidebarDrawerProps {
   /** Visibility state of the drawer modal */
@@ -90,7 +91,9 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
         <SafeAreaView style={styles.safeContainer} edges={['top', 'bottom', 'left', 'right']}>
           {/* Top Bar: Center Name + Right Arrow Button */}
           <View style={styles.header}>
-            <View style={styles.headerSideSpacer} />
+            <View style={styles.headerSideSpacer}>
+              <TibooLogo size={26} />
+            </View>
 
             <View style={styles.headerIdentity}>
               <MascotAvatar size={28} />
@@ -261,6 +264,7 @@ const styles = StyleSheet.create({
   },
   headerSideSpacer: {
     width: 48,
+    justifyContent: 'center',
   },
   headerTitle: {
     fontSize: 17,
@@ -279,7 +283,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.borderLight,
     ...Platform.select({
       ios: {
-        shadowColor: Colors.shadowWarm,
+        shadowColor: Colors.shadow,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.06,
         shadowRadius: 6,
@@ -288,7 +292,7 @@ const styles = StyleSheet.create({
         elevation: 2,
       },
       web: {
-        boxShadow: '0 2px 8px rgba(92, 64, 51, 0.06)',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
       },
     }),
   },

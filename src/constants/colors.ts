@@ -1,72 +1,70 @@
 /**
  * Muse AI Clone - Centralized Design Tokens & Color Palette
- * "Soft & warm" theme: cream backgrounds, terracotta primary,
- * peach / sage pastel accents and warm brown text.
+ * Tiboo "clean" theme: white / very light grey surfaces, near-black text,
+ * and the Tiboo violet (from the logo) reserved for buttons, active
+ * states and the user's chat bubbles.
  */
 
 export const Colors = {
-  // Brand Primary (Terracotta)
-  primary: '#C8734F',
-  primaryDark: '#A95C3B',
-  primaryLight: '#E0946F',
-  primaryGradientStart: '#E0946F',
-  primaryGradientEnd: '#C8734F',
-  primarySubtle: '#FBEDE5',
-  primaryGlow: 'rgba(200, 115, 79, 0.16)',
-  primaryBorder: '#F2CDB9',
+  // Brand Primary (Tiboo Violet)
+  primary: '#7623D5',
+  primaryDark: '#5A16B0',
+  primaryLight: '#9B55E6',
+  primaryGradientStart: '#4F17AE',
+  primaryGradientEnd: '#CE64EA',
+  primarySubtle: '#F4EDFD',
+  primaryGlow: 'rgba(118, 35, 213, 0.12)',
+  primaryBorder: '#DCC8F5',
 
-  // Neutral / Layout Colors (Warm Cream Theme)
+  // Neutral / Layout Colors (Clean White Theme)
   white: '#FFFFFF',
   black: '#000000',
-  background: '#FBF7F2',
-  surface: '#F6EFE7',
-  surfaceElevated: '#FFFDF9',
-  surfaceMuted: '#F1E8DD',
+  background: '#FFFFFF',
+  surface: '#F5F5F7',
+  surfaceElevated: '#FFFFFF',
+  surfaceMuted: '#EFEFF4',
 
   // Text Colors
-  text: '#3A2E26',
-  textPrimary: '#3A2E26',
-  textSecondary: '#6E6058',
-  textMuted: '#A39488',
-  textDisabled: '#D6CABE',
+  text: '#1D1D1F',
+  textPrimary: '#1D1D1F',
+  textSecondary: '#6E6E73',
+  textMuted: '#A1A1A6',
+  textDisabled: '#D1D1D6',
   textWhite: '#FFFFFF',
-  textLink: '#C8734F',
+  textLink: '#7623D5',
 
   // Border & Dividers
-  border: '#EADFD3',
-  borderLight: '#F2EAE0',
-  borderFocus: '#C8734F',
-  divider: '#EADFD3',
+  border: '#E5E5EA',
+  borderLight: '#F2F2F7',
+  borderFocus: '#7623D5',
+  divider: '#E5E5EA',
 
   // Status & Feedback
-  success: '#7FA07A',
-  successLight: '#E8EFE6',
-  warning: '#E0A458',
-  warningLight: '#FBF0DF',
-  error: '#D46A5E',
-  errorLight: '#FBE9E6',
-  info: '#7A9CB8',
-  infoLight: '#EAF0F5',
+  success: '#34C759',
+  successLight: '#E9F9EE',
+  warning: '#FF9F0A',
+  warningLight: '#FFF4E5',
+  error: '#FF3B30',
+  errorLight: '#FFEBEA',
+  info: '#0A84FF',
+  infoLight: '#E8F2FF',
 
   // Tab & Chat UI specific tokens
-  tabInactive: '#A39488',
-  tabActive: '#3A2E26',
-  tabActiveBg: '#F1E4D6',
-  chatBubbleUser: '#F6D5C3',
-  chatBubbleAi: '#FFFDF9',
-  chatBubbleAiBorder: '#EFE5DA',
-  overlay: 'rgba(58, 46, 38, 0.35)',
-  statusBlue: '#E07A5F',
-  iconDark: '#3A2E26',
-  iconMuted: '#A39488',
-  inputBg: '#FFFDF9',
-  inputBorder: '#EADFD3',
-  dockBg: '#FFFDF9',
-  userBubbleText: '#4A2C1E',
-  shadowWarm: '#5C4033',
-  sage: '#7FA07A',
-  sageSubtle: '#E8EFE6',
-  peach: '#F2B79F',
+  tabInactive: '#A1A1A6',
+  tabActive: '#1D1D1F',
+  tabActiveBg: '#F4EDFD',
+  chatBubbleUser: '#7623D5',
+  chatBubbleAi: '#F2F2F7',
+  chatBubbleAiBorder: 'transparent',
+  overlay: 'rgba(0, 0, 0, 0.28)',
+  statusBlue: '#7623D5',
+  iconDark: '#1D1D1F',
+  iconMuted: '#A1A1A6',
+  inputBg: '#F5F5F7',
+  inputBorder: '#E5E5EA',
+  dockBg: '#FFFFFF',
+  userBubbleText: '#FFFFFF',
+  shadow: '#000000',
 
   // Google Branding
   googleBlue: '#4285F4',
@@ -78,14 +76,14 @@ export const Colors = {
 
   // Dark Scheme Palette (for dark mode compatibility)
   light: {
-    text: '#3A2E26',
-    background: '#FBF7F2',
-    backgroundElement: '#F6EFE7',
-    backgroundSelected: '#FBEDE5',
-    textSecondary: '#6E6058',
-    tint: '#C8734F',
-    card: '#FFFDF9',
-    border: '#EADFD3',
+    text: '#1D1D1F',
+    background: '#FFFFFF',
+    backgroundElement: '#F5F5F7',
+    backgroundSelected: '#F4EDFD',
+    textSecondary: '#6E6E73',
+    tint: '#7623D5',
+    card: '#FFFFFF',
+    border: '#E5E5EA',
   },
   dark: {
     text: '#F8FAFC',

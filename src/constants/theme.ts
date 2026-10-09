@@ -43,26 +43,26 @@ export const Fonts = Platform.select({
 });
 
 /**
- * Rounded "soft & warm" typography (Nunito, loaded in the root layout).
+ * Clean typography (Inter, loaded in the root layout).
  * Use these font families instead of fontWeight so weights render the
  * same on iOS, Android and web.
  */
 export const Typography = {
-  regular: 'Nunito_400Regular',
-  medium: 'Nunito_500Medium',
-  semibold: 'Nunito_600SemiBold',
-  bold: 'Nunito_700Bold',
-  extrabold: 'Nunito_800ExtraBold',
+  regular: 'Inter_400Regular',
+  medium: 'Inter_500Medium',
+  semibold: 'Inter_600SemiBold',
+  bold: 'Inter_700Bold',
+  extrabold: 'Inter_800ExtraBold',
 } as const;
 
 /**
  * Corner radii for the soft, rounded look.
  */
 export const Radius = {
-  sm: 12,
-  md: 18,
-  lg: 24,
-  xl: 32,
+  sm: 10,
+  md: 14,
+  lg: 20,
+  xl: 28,
   pill: 999,
 } as const;
 

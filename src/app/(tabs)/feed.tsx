@@ -1,8 +1,8 @@
 /**
  * Feed Tab Screen ('/(tabs)/feed')
  *
- * Soft empty state until the agent posts updates:
- * agent avatar on a pastel halo, title and a short hint.
+ * Clean empty state until the agent posts updates:
+ * agent avatar on a soft violet halo, title and a short hint.
  */
 
 import React from 'react';
@@ -21,7 +21,7 @@ export default function FeedScreen() {
         <View style={styles.halo}>
           <MascotAvatar size={72} />
         </View>
-        <Text style={styles.title}>Your feed is cozy and quiet</Text>
+        <Text style={styles.title}>Nothing here yet</Text>
         <Text style={styles.subtitle}>
           {agent.name} will share updates, summaries and wins here as your goals move forward.
         </Text>

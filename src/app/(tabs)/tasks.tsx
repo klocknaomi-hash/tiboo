@@ -101,8 +101,11 @@ export default function TasksScreen() {
                   <Switch
                     value={isActive}
                     onValueChange={() => handleToggle(task.id, task.title)}
-                    trackColor={{ false: Colors.border, true: Colors.primaryLight }}
-                    thumbColor={isActive ? Colors.primary : Colors.surfaceMuted}
+                    trackColor={{ false: Colors.border, true: Colors.primary }}
+                    thumbColor={Colors.white}
+                    ios_backgroundColor={Colors.border}
+                    // react-native-web only: keep the thumb white when on
+                    {...({ activeThumbColor: Colors.white } as object)}
                   />
 
                   <TouchableOpacity

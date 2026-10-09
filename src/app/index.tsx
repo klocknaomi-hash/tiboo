@@ -1,27 +1,30 @@
 /**
  * Sign In Screen Route ('/')
  *
- * All-in-one onboarding & Google Sign-in screen:
- * - Center: Glowing blue Muse AI brand emblem hero
- * - Bottom: Full-width Google Sign-in action button with SVG brand mark & press feedback
+ * Clean onboarding & sign-in screen:
+ * - Top: Tiboo app-icon tile, wordmark and tagline
+ * - Tiboo account sign-in (email + password, for Tiboo's own servers)
+ * - "or" divider, then Google sign-in (Apple sign-in comes with the App Store release)
  */
 
 import React, { useState } from 'react';
 import {
   View,
   Text,
+  TextInput,
   StyleSheet,
   Pressable,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import { HugeiconsIcon } from '@hugeicons/react-native';
-import { AiSparklesIcon } from '@hugeicons/core-free-icons';
 import { Colors } from '@/constants/colors';
 import { Typography } from '@/constants/theme';
 import { useRouter } from 'expo-router';
 import { showToast } from '@/context/ToastContext';
+import { TibooLogo } from '@/components/common';
 import { APP_BRAND } from '@/constants/agentConfig';
 
 /**
@@ -49,8 +52,23 @@ const GoogleBrandIcon = ({ size = 22 }: { size?: number }) => (
 );
 
 export default function SignInScreen() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  const canSubmit = email.trim().length > 0 && password.length > 0 && !loading;
+
+  // Demo flow: the real call to Tiboo's auth server is still to be wired
+  const handleAccountSignIn = () => {
+    if (!canSubmit) return;
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      showToast('Signed in successfully');
+      router.replace('/(tabs)/chat' as any);
+    }, 600);
+  };
 
   const handleGoogleSignIn = () => {
     showToast('Signed in successfully');
@@ -59,58 +77,88 @@ export default function SignInScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']}>
-      <View style={styles.content}>
-        {/* Center Hero: Muse AI Brand Emblem & Wordmark */}
-        <View style={styles.logoWrapper}>
-          {/* Soft pastel blobs */}
-          <View style={[styles.blob, styles.blobPeach]} />
-          <View style={[styles.blob, styles.blobSage]} />
-
-          {/* Ambient Glow Halo around the Emblem */}
-          <View style={styles.glowRing}>
-            <View style={styles.iconContainer}>
-              <HugeiconsIcon
-                icon={AiSparklesIcon}
-                size={40}
-                color={Colors.white}
-                strokeWidth={1.75}
-              />
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <View style={styles.content}>
+          {/* Brand: app-icon tile, wordmark, tagline */}
+          <View style={styles.brand}>
+            <View style={styles.tileShadow}>
+              <TibooLogo variant="tile" size={84} />
             </View>
+            <Text style={styles.wordmark}>{APP_BRAND.name}</Text>
+            <Text style={styles.tagline}>Your AI companion for everyday goals</Text>
           </View>
 
-          {/* Brand Wordmark */}
-          <View style={styles.brandRow}>
-            <Text style={styles.brandName}>{APP_BRAND.name}</Text>
-            <Text style={styles.aiText}> {APP_BRAND.suffix}</Text>
+          {/* Tiboo account sign-in */}
+          <View style={styles.form}>
+            <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="Email"
+              placeholderTextColor={Colors.textMuted}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+              textContentType="emailAddress"
+              returnKeyType="next"
+            />
+            <TextInput
+              style={styles.input}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Password"
+              placeholderTextColor={Colors.textMuted}
+              secureTextEntry
+              autoComplete="password"
+              textContentType="password"
+              returnKeyType="go"
+              onSubmitEditing={handleAccountSignIn}
+            />
+            <Pressable
+              onPress={handleAccountSignIn}
+              disabled={!canSubmit}
+              style={({ pressed }) => [
+                styles.primaryButton,
+                !canSubmit && styles.buttonDisabled,
+                pressed && styles.buttonPressed,
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel="Sign in with your Tiboo account">
+              {loading ? (
+                <ActivityIndicator size="small" color={Colors.white} />
+              ) : (
+                <Text style={styles.primaryButtonText}>Sign in</Text>
+              )}
+            </Pressable>
+            <Pressable onPress={() => showToast('Account creation coming soon')} hitSlop={8}>
+              <Text style={styles.linkText}>Create a Tiboo account</Text>
+            </Pressable>
           </View>
-          <Text style={styles.tagline}>Your gentle companion for everyday goals</Text>
-        </View>
 
-        {/* Bottom Action: Google Sign-In Button */}
-        <View style={styles.actionContainer}>
+          {/* Divider */}
+          <View style={styles.dividerRow}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          {/* Third-party sign-in */}
           <Pressable
             onPress={handleGoogleSignIn}
-            disabled={loading}
-            style={({ pressed }) => [
-              styles.button,
-              pressed && styles.buttonPressed,
-              loading && styles.buttonDisabled,
-            ]}
+            style={({ pressed }) => [styles.secondaryButton, pressed && styles.buttonPressed]}
             accessibilityRole="button"
-            accessibilityLabel="Sign in with Google">
-            {loading ? (
-              <ActivityIndicator size="small" color={Colors.primary} />
-            ) : (
-              <View style={styles.buttonContent}>
-                <View style={styles.iconWrapper}>
-                  <GoogleBrandIcon size={22} />
-                </View>
-                <Text style={styles.buttonText}>Sign in with Google</Text>
+            accessibilityLabel="Continue with Google">
+            <View style={styles.buttonContent}>
+              <View style={styles.iconWrapper}>
+                <GoogleBrandIcon size={20} />
               </View>
-            )}
+              <Text style={styles.secondaryButtonText}>Continue with Google</Text>
+            </View>
           </Pressable>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -120,114 +168,111 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  flex: {
+    flex: 1,
+  },
   content: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     paddingHorizontal: 24,
-    paddingTop: 80,
-    paddingBottom: 48,
+    paddingVertical: 32,
     width: '100%',
     maxWidth: 400,
     alignSelf: 'center',
   },
-  logoWrapper: {
-    flex: 1,
-    justifyContent: 'center',
+  brand: {
     alignItems: 'center',
+    marginBottom: 36,
   },
-  glowRing: {
-    width: 116,
-    height: 116,
-    borderRadius: 58,
-    backgroundColor: Colors.primaryGlow,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
+  tileShadow: {
+    borderRadius: 20,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 8,
+    marginBottom: 18,
   },
-  blob: {
-    position: 'absolute',
-    borderRadius: 999,
-    opacity: 0.55,
-  },
-  blobPeach: {
-    width: 180,
-    height: 180,
-    backgroundColor: Colors.peach,
-    top: '18%',
-    left: -70,
-  },
-  blobSage: {
-    width: 150,
-    height: 150,
-    backgroundColor: Colors.sageSubtle,
-    bottom: '22%',
-    right: -60,
+  wordmark: {
+    fontSize: 34,
+    fontFamily: Typography.bold,
+    color: Colors.textPrimary,
+    letterSpacing: -1,
   },
   tagline: {
-    marginTop: 10,
+    marginTop: 6,
     fontSize: 15,
-    fontFamily: Typography.medium,
+    fontFamily: Typography.regular,
     color: Colors.textSecondary,
     textAlign: 'center',
   },
-  iconContainer: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
+  form: {
+    gap: 10,
+  },
+  input: {
+    height: 50,
+    borderRadius: 14,
+    backgroundColor: Colors.inputBg,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    fontFamily: Typography.regular,
+    color: Colors.textPrimary,
+  },
+  primaryButton: {
+    height: 50,
+    borderRadius: 14,
     backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.35,
-    shadowRadius: 20,
-    elevation: 10,
+    marginTop: 6,
   },
-  brandRow: {
+  primaryButtonText: {
+    fontSize: 16,
+    fontFamily: Typography.semibold,
+    color: Colors.white,
+  },
+  linkText: {
+    marginTop: 6,
+    fontSize: 14,
+    fontFamily: Typography.medium,
+    color: Colors.primary,
+    textAlign: 'center',
+  },
+  dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    marginVertical: 24,
   },
-  brandName: {
-    fontSize: 34,
-    fontFamily: Typography.extrabold,
-    color: Colors.textPrimary,
-    letterSpacing: -0.6,
+  dividerLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: Colors.border,
   },
-  aiText: {
-    fontSize: 34,
-    fontFamily: Typography.extrabold,
-    color: Colors.primary,
-    letterSpacing: -0.6,
+  dividerText: {
+    marginHorizontal: 12,
+    fontSize: 13,
+    fontFamily: Typography.medium,
+    color: Colors.textMuted,
   },
-  actionContainer: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  button: {
-    height: 56,
-    backgroundColor: Colors.surfaceElevated,
-    borderWidth: 1.5,
+  secondaryButton: {
+    height: 50,
+    borderRadius: 14,
+    borderWidth: 1,
     borderColor: Colors.border,
-    borderRadius: 28,
+    backgroundColor: Colors.surfaceElevated,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 24,
-    width: '100%',
-    shadowColor: Colors.shadowWarm,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+  },
+  secondaryButtonText: {
+    fontSize: 16,
+    fontFamily: Typography.semibold,
+    color: Colors.textPrimary,
   },
   buttonPressed: {
-    backgroundColor: Colors.surface,
-    borderColor: Colors.borderFocus,
-    transform: [{ scale: 0.99 }],
+    opacity: 0.85,
   },
   buttonDisabled: {
-    opacity: 0.6,
+    opacity: 0.4,
   },
   buttonContent: {
     flexDirection: 'row',
@@ -235,12 +280,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   iconWrapper: {
-    marginRight: 12,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontFamily: Typography.bold,
-    color: Colors.textPrimary,
-    letterSpacing: -0.2,
+    marginRight: 10,
   },
 });

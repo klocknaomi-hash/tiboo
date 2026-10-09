@@ -3,7 +3,8 @@
  *
  * Agent personalization modal:
  * - Live avatar preview
- * - Avatar picker: 3D mascot, initials, emoji, or photo from the gallery
+ * - Avatar picker: ready-made personas (Leo, Chloé, Amir, Kaya), Tiboo mascot,
+ *   initials, or photo from the gallery
  * - Agent name, role and greeting inputs
  * - Accent color selector
  * - Reset to defaults, Cancel & Save actions
@@ -27,7 +28,7 @@ import { HugeiconsIcon } from '@hugeicons/react-native';
 import { Cancel01Icon, CheckmarkCircle02Icon, Image01Icon } from '@hugeicons/core-free-icons';
 import { Colors } from '@/constants/colors';
 import { Typography } from '@/constants/theme';
-import { AGENT_EMOJI_AVATARS, AGENT_THEME_COLORS } from '@/constants/agentConfig';
+import { AGENT_PERSONAS, AGENT_THEME_COLORS } from '@/constants/agentConfig';
 import MascotAvatar from './MascotAvatar';
 import { showToast } from '@/context/ToastContext';
 import { useAgent } from '@/context/AgentContext';
@@ -40,6 +41,7 @@ export interface EditAgentModalProps {
 
 const isSameAvatar = (a: AgentAvatar, b: AgentAvatar) =>
   a.type === b.type &&
+  (a.type !== 'persona' || a.id === (b as typeof a).id) &&
   (a.type !== 'emoji' || a.value === (b as typeof a).value) &&
   (a.type !== 'photo' || a.uri === (b as typeof a).uri);
 
@@ -95,10 +97,21 @@ export const EditAgentModal: React.FC<EditAgentModalProps> = ({ visible, onClose
   };
 
   const avatarOptions: AgentAvatar[] = [
+    ...AGENT_PERSONAS.map((p): AgentAvatar => ({ type: 'persona', id: p.id })),
     { type: 'mascot' },
     { type: 'initials' },
-    ...AGENT_EMOJI_AVATARS.map((value): AgentAvatar => ({ type: 'emoji', value })),
   ];
+
+  // Picking a persona also suggests its name, unless a custom name was typed
+  const handleSelectAvatar = (option: AgentAvatar) => {
+    setAvatar(option);
+    if (option.type !== 'persona') return;
+    const persona = AGENT_PERSONAS.find((p) => p.id === option.id);
+    const trimmed = name.trim();
+    if (persona && (!trimmed || AGENT_PERSONAS.some((p) => p.name === trimmed))) {
+      setName(persona.name);
+    }
+  };
 
   return (
     <Modal
@@ -173,7 +186,7 @@ export const EditAgentModal: React.FC<EditAgentModalProps> = ({ visible, onClose
                               styles.avatarOption,
                               isSelected && { borderColor: selectedColor },
                             ]}
-                            onPress={() => setAvatar(option)}
+                            onPress={() => handleSelectAvatar(option)}
                             activeOpacity={0.8}>
                             <MascotAvatar
                               size={40}
@@ -309,7 +322,7 @@ const styles = StyleSheet.create({
     padding: 20,
     ...Platform.select({
       ios: {
-        shadowColor: Colors.shadowWarm,
+        shadowColor: Colors.shadow,
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.15,
         shadowRadius: 20,
@@ -318,7 +331,7 @@ const styles = StyleSheet.create({
         elevation: 8,
       },
       web: {
-        boxShadow: '0 12px 32px rgba(92, 64, 51, 0.15)',
+        boxShadow: '0 12px 32px rgba(0, 0, 0, 0.15)',
       },
     }),
   },
@@ -430,7 +443,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.white,
     ...Platform.select({
       ios: {
-        shadowColor: Colors.shadowWarm,
+        shadowColor: Colors.shadow,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 3,
