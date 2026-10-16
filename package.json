@@ -3,7 +3,9 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.135.0",
     "@browserbasehq/stagehand": "^4.2.1",
+    "@composio/core": "0.25.0",
     "@expo-google-fonts/inter": "0.4.2",
     "@expo/ui": "~57.0.23",
     "@hugeicons/core-free-icons": "^4.3.5",

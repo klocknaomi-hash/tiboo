@@ -66,6 +66,16 @@ export const DEFAULT_AGENT_PROFILE: AgentProfile = {
   avatar: { type: 'persona', id: AGENT_PERSONAS[0].id },
   color: AGENT_THEME_COLORS[0],
   greeting:
-    "Bonjour ! Je suis Léo, ton agent autonome Tiboo. En quelques mots, quel objectif ou quelle tâche souhaites-tu accomplir aujourd'hui ?",
+    "Bonjour ! Je suis {name}, ton agent Tiboo. En quelques mots, quel objectif ou quelle tâche souhaites-tu accomplir aujourd'hui ?",
 };
+
+/** Greeting saved by earlier versions with a hard-coded name. */
+export const LEGACY_DEFAULT_GREETINGS = [
+  "Bonjour ! Je suis Léo, ton agent autonome Tiboo. En quelques mots, quel objectif ou quelle tâche souhaites-tu accomplir aujourd'hui ?",
+];
+
+/** Greeting with "{name}" replaced by the agent's current name. */
+export function formatGreeting(greeting: string, agentName: string): string {
+  return greeting.split('{name}').join(agentName);
+}
 

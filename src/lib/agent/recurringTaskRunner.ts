@@ -1,95 +1,89 @@
 /**
- * Recurring Scheduled Task Runner (Part 5 & 6)
+ * Scheduled task runner (server only).
  *
- * Reuses the EXACT same agent and Composio MCP tools (Gmail, Calendar, Notion, etc.)
- * to execute autonomous scheduled routines and background goal runs.
+ * Runs one task from `scheduled_tasks` with the real agent and records the
+ * outcome in `task_executions`. The run is reported as failed whenever the
+ * agent errors, and also when it needs a confirmation (nobody is there to
+ * give it during a scheduled run), so a "completed" run always really ran.
  */
 
-import { TaskGoalItem } from '@/types';
-import { composioTools } from '../composio/tools';
-import { askAgent, TibooResponse } from './index';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { getNextCronRunDate } from '../cronUtils';
+import { askAgent } from './index';
 
-export interface RecurringTaskExecutionResult {
-  taskId: string;
-  taskTitle: string;
-  executedAt: string;
-  success: boolean;
-  agentResponse: TibooResponse;
-  toolsUsed: string[];
+export interface ScheduledTaskRow {
+  id: string;
+  user_id: string;
+  title: string | null;
+  instruction: string;
+  schedule: string;
+  timezone: string | null;
 }
 
-export type SchedulableTask =
-  | TaskGoalItem
-  | { id: string; title?: string; instruction?: string; schedule: string };
-
-/**
- * Maps a scheduled task goal to an actionable prompt for the agent
- */
-export function buildPromptForScheduledTask(task: SchedulableTask): string {
-  if ('instruction' in task && task.instruction && task.instruction.trim().length > 0) {
-    return (
-      `Exécute la tâche récurrente planifiée "${task.title || 'Automatisation'}". ` +
-      `Instruction : "${task.instruction}". ` +
-      `Utilise les outils connectés nécessaires (Gmail, Calendar, Notion, etc.) et fournis une réponse structurée, claire et utile.`
-    );
-  }
-
-  const title = task.title || 'Routine';
-  const lower = title.toLowerCase();
-
-  if (lower.includes('briefing') || lower.includes('matin') || lower.includes('morning')) {
-    return (
-      `Exécute la tâche planifiée "${title}". ` +
-      `Consulte mes 5 derniers emails non lus sur Gmail et mes 3 prochains événements Google Calendar, ` +
-      `puis rédige un briefing matinal synthétique et chaleureux.`
-    );
-  }
-
-  if (lower.includes('notion') || lower.includes('revue') || lower.includes('projet') || lower.includes('docs')) {
-    return (
-      `Exécute la tâche planifiée "${title}". ` +
-      `Cherche mes documents de projet récents dans Notion et fais-moi un point d'avancement clair.`
-    );
-  }
-
-  if (lower.includes('mail') || lower.includes('email') || lower.includes('inbox')) {
-    return (
-      `Exécute la tâche planifiée "${title}". ` +
-      `Vérifie les nouveaux emails prioritaires dans Gmail et résume les urgences.`
-    );
-  }
-
-  return (
-    `Exécute la routine planifiée "${title}" programmée pour "${task.schedule}". ` +
-    `Utilise les outils connectés nécessaires (Gmail, Calendar, Notion) et fournis un compte-rendu clair.`
-  );
+export interface TaskRunOutcome {
+  executionId: string | null;
+  status: 'completed' | 'failed';
+  message: string;
 }
 
-/**
- * Executes a scheduled recurring task with the autonomous agent
- * using the unified Composio MCP tools suite.
- */
-export async function executeScheduledTask(
-  task: SchedulableTask
-): Promise<RecurringTaskExecutionResult> {
-  const prompt = buildPromptForScheduledTask(task);
-  const response = await askAgent(prompt);
+export async function runScheduledTask(task: ScheduledTaskRow, db: SupabaseClient): Promise<TaskRunOutcome> {
+  const startedAt = new Date().toISOString();
+  const timezone = task.timezone || 'Europe/Paris';
 
-  // Identify which Composio tools match the execution
-  const toolsUsed: string[] = [];
-  if (response.actionTaken?.includes('Gmail')) toolsUsed.push('composio_gmail');
-  if (response.actionTaken?.includes('Calendar')) toolsUsed.push('composio_google_calendar');
-  if (response.actionTaken?.includes('Notion')) toolsUsed.push('composio_notion');
-  if (toolsUsed.length === 0) {
-    toolsUsed.push(composioTools[0].name);
+  // Claim the run first so a second trigger does not run it twice.
+  await db
+    .from('scheduled_tasks')
+    .update({
+      last_run_at: startedAt,
+      next_run_at: getNextCronRunDate(task.schedule, new Date(), timezone).toISOString(),
+      updated_at: startedAt,
+    })
+    .eq('id', task.id);
+
+  const { data: execution } = await db
+    .from('task_executions')
+    .insert({ task_id: task.id, status: 'running', started_at: startedAt })
+    .select('id')
+    .single();
+  const executionId = execution?.id ?? null;
+
+  let status: TaskRunOutcome['status'] = 'completed';
+  let message = '';
+  let errorText: string | null = null;
+
+  try {
+    const reply = await askAgent({
+      userId: task.user_id,
+      db,
+      timezone,
+      message:
+        `Tâche planifiée « ${task.title || task.instruction} ». Exécute maintenant : ${task.instruction}\n` +
+        'Rends compte uniquement de ce que tes outils ont réellement fait.',
+    });
+    if (reply.requiresConfirmation) {
+      status = 'failed';
+      errorText = `Non exécutée : « ${reply.requiresConfirmation.description} » demande ta confirmation. Lance-la depuis le chat.`;
+      message = errorText;
+    } else {
+      message = reply.message;
+    }
+  } catch (err: any) {
+    status = 'failed';
+    errorText = err?.message || "Erreur lors de l'exécution de la tâche.";
+    message = errorText ?? '';
   }
 
-  return {
-    taskId: task.id,
-    taskTitle: task.title || 'Routine',
-    executedAt: new Date().toISOString(),
-    success: true,
-    agentResponse: response,
-    toolsUsed,
-  };
+  if (executionId) {
+    await db
+      .from('task_executions')
+      .update({
+        status,
+        completed_at: new Date().toISOString(),
+        result: status === 'completed' ? { message } : null,
+        error: errorText,
+      })
+      .eq('id', executionId);
+  }
+
+  return { executionId, status, message };
 }

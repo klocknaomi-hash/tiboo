@@ -31,7 +31,7 @@ import { TibooLogo } from '@/components/common';
 import { APP_BRAND } from '@/constants/agentConfig';
 import { useAuth } from '@/context/AuthContext';
 import { signInWithEmail, signUpWithEmail, signInWithGoogle, saveUserProfile } from '@/lib/auth';
-import { supabase } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -188,6 +188,12 @@ export default function SignInScreen() {
             <Text style={styles.tagline}>
               {isSignUp ? 'Créez votre compte pour commencer' : 'Votre compagnon IA pour vos objectifs quotidiens'}
             </Text>
+            {!isSupabaseConfigured && (
+              <Text style={styles.configWarning} accessibilityRole="alert">
+                Configuration incomplète : les clés Supabase ne sont pas renseignées, la connexion
+                ne fonctionnera pas.
+              </Text>
+            )}
           </View>
 
           {/* Email / Password Form */}
@@ -319,6 +325,14 @@ export default function SignInScreen() {
 }
 
 const styles = StyleSheet.create({
+  configWarning: {
+    marginTop: 12,
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: 'center',
+    fontFamily: Typography.medium,
+    color: Colors.error,
+  },
   container: {
     flex: 1,
     backgroundColor: Colors.background,

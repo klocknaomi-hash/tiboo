@@ -1,82 +1,58 @@
+import Anthropic from '@anthropic-ai/sdk';
 import { IAIProvider, AIChatRequest, AIChatResponse } from '../types';
-import { DEFAULT_SYSTEM_INSTRUCTIONS } from '@/constants/agentInstructions';
+import { buildAgentSystemPrompt } from '@/constants/agentInstructions';
 
+/**
+ * Anthropic Claude (official SDK). Conversation only for now: Tiboo's tools
+ * are wired to the OpenAI Agents SDK, so Claude cannot use the connectors yet.
+ */
 export class AnthropicProvider implements IAIProvider {
   readonly id = 'anthropic' as const;
-  readonly displayName = 'Anthropic Claude (Claude 3.5 Sonnet)';
-  readonly defaultModel = process.env.ANTHROPIC_MODEL || 'claude-3-5-sonnet-20241022';
+  readonly displayName = 'Anthropic Claude';
+  readonly defaultModel = process.env.ANTHROPIC_MODEL || 'claude-opus-5-5';
+  readonly capabilities = { tools: false };
+
+  private client: Anthropic | null = null;
 
   isConfigured(): boolean {
-    const key = process.env.ANTHROPIC_API_KEY;
-    return typeof key === 'string' && key.trim().length > 0;
+    return Boolean(process.env.ANTHROPIC_API_KEY?.trim());
   }
 
   async ask(request: AIChatRequest): Promise<AIChatResponse> {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-
-    if (!apiKey) {
-      return {
-        message:
-          "ℹ️ **Fournisseur Anthropic Claude sélectionné**\n\n" +
-          "La clé d'API `ANTHROPIC_API_KEY` n'est pas encore renseignée dans votre fichier `.env` côté serveur.\n\n" +
-          "Claude 3.5 Sonnet est particulièrement adapté pour le raisonnement approfondi et l'orchestration multi-étapes de connecteurs. Dès que la clé sera ajoutée, ce fournisseur sera actif instantanément.",
-        summary: "Clé ANTHROPIC_API_KEY manquante.",
-        provider: this.id,
-        model: this.defaultModel,
-        suggestedActions: [
-          'Passer sur OpenAI',
-          'Consulter la documentation',
-          'Vérifier les connecteurs',
-        ],
-      };
+    if (!this.isConfigured()) {
+      throw new Error("Claude n'est pas configuré sur le serveur (ANTHROPIC_API_KEY manquant).");
     }
+    this.client ??= new Anthropic();
 
-    try {
-      const messages = [
-        ...(request.history || []).map((m) => ({
-          role: m.role === 'assistant' ? ('assistant' as const) : ('user' as const),
-          content: m.content,
-        })),
-        { role: 'user' as const, content: request.message },
-      ];
+    const messages: Anthropic.Beta.BetaMessageParam[] = [
+      ...(request.history || []).slice(-20).map((t) => ({ role: t.role, content: t.content })),
+      { role: 'user', content: request.message },
+    ];
 
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-        },
-        body: JSON.stringify({
-          model: this.defaultModel,
-          max_tokens: 1024,
-          system: DEFAULT_SYSTEM_INSTRUCTIONS,
-          messages,
-        }),
-      });
+    const response = await this.client.beta.messages.create({
+      model: this.defaultModel,
+      max_tokens: 16000,
+      system:
+        buildAgentSystemPrompt(request.persona) +
+        "\n\nDans ce mode, tu n'as accès à aucun outil : ne prétends jamais lire des emails, " +
+        "un agenda, Notion ou le web, ni créer une tâche. Dis-le si on te le demande.",
+      messages,
+      output_config: { effort: 'low' },
+      // Server-side fallback if a request is declined by a safety classifier.
+      betas: ['server-side-fallback-2026-07-01'],
+      fallbacks: 'default',
+    });
 
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData?.error?.message || `HTTP ${res.status}`);
-      }
-
-      const data = await res.json();
-      const textBlock = data.content?.find((c: any) => c.type === 'text');
-      const text = textBlock?.text || 'Réponse reçue.';
-
-      return {
-        message: text,
-        summary: 'Réponse générée par Claude 3.5 Sonnet',
-        provider: this.id,
-        model: this.defaultModel,
-      };
-    } catch (err: any) {
-      return {
-        message: `Erreur lors de l'appel à Anthropic Claude : ${err?.message || 'Erreur inconnue'}`,
-        summary: 'Échec de la requête Anthropic',
-        provider: this.id,
-        model: this.defaultModel,
-      };
+    if (response.stop_reason === 'refusal') {
+      throw new Error('Claude a refusé de répondre à cette demande.');
     }
+    const text = response.content
+      .filter((b): b is Anthropic.Beta.BetaTextBlock => b.type === 'text')
+      .map((b) => b.text)
+      .join('\n')
+      .trim();
+    if (!text) throw new Error("Claude n'a pas renvoyé de réponse.");
+
+    return { message: text, suggestedActions: [], provider: this.id, model: response.model };
   }
 }

@@ -14,7 +14,6 @@ import {
   SideChatItem,
   IdeaItem,
   TaskGoalItem,
-  ConnectorItem,
   PlanData,
 } from '@/types';
 
@@ -142,70 +141,4 @@ export const SETTINGS_PLAN_DATA: PlanData = {
   creditsTotal: 1000,
   remainingCredits: 890,
 };
-
-/**
- * Pre-configured third-party tools with connection state in Settings.
- */
-export const SETTINGS_CONNECTORS: ConnectorItem[] = [
-  {
-    id: 'conn-1',
-    name: 'Google Workspace',
-    description: 'Synchronisation Gmail, événements Agenda et Google Drive',
-    iconBg: '#4285F4',
-    connected: true,
-    category: 'Productivité',
-    accountEmail: 'utilisateur@gmail.com',
-  },
-  {
-    id: 'conn-2',
-    name: 'Notion',
-    description: 'Automatisation des bases de données, documents et notes',
-    iconBg: '#000000',
-    connected: true,
-    category: 'Espace de travail',
-    accountEmail: 'utilisateur.notion.so',
-  },
-  {
-    id: 'conn-3',
-    name: 'GitHub',
-    description: 'Revues de pull requests, suivi des issues et commits',
-    iconBg: '#24292E',
-    connected: true,
-    category: 'Développement',
-    accountEmail: 'github.com/utilisateur',
-  },
-  {
-    id: 'conn-4',
-    name: 'Slack',
-    description: 'Synthèse des canaux prioritaires et alertes d’équipe',
-    iconBg: '#4A154B',
-    connected: true,
-    category: 'Messagerie',
-    accountEmail: 'Espace d’équipe',
-  },
-  {
-    id: 'conn-5',
-    name: 'Linear',
-    description: 'Suivi des tickets, cycles de sprint et roadmap produit',
-    iconBg: '#5E6AD2',
-    connected: false,
-    category: 'Développement',
-  },
-  {
-    id: 'conn-6',
-    name: 'Figma',
-    description: 'Inspection des design tokens, maquettes et composants UI',
-    iconBg: '#F24E1E',
-    connected: false,
-    category: 'Design',
-  },
-  {
-    id: 'conn-7',
-    name: 'X (Twitter)',
-    description: 'Veille des fils d’actualité, tendances et brouillons de posts',
-    iconBg: '#1DA1F2',
-    connected: false,
-    category: 'Réseaux sociaux',
-  },
-];
 

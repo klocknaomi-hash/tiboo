@@ -12,6 +12,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { MenuTwoLineIcon, MoreHorizontalIcon } from '@hugeicons/core-free-icons';
 import { Colors } from '@/constants/colors';
+import { useThemeColors } from '@/hooks/useThemeColors';
 import { Typography } from '@/constants/theme';
 import MascotAvatar from './MascotAvatar';
 import { useAgent } from '@/context/AgentContext';
@@ -34,6 +35,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onMascotPress,
 }) => {
   const { agent } = useAgent();
+  const theme = useThemeColors();
   const agentName = agent.name;
 
   return (
@@ -54,7 +56,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             strokeWidth={2.2}
           />
           {/* Status / notification indicator dot using active theme color */}
-          <View style={[styles.blueDot, { backgroundColor: agent.color }]} />
+          <View style={[[styles.blueDot, { backgroundColor: theme.accent }], { backgroundColor: agent.color }]} />
         </TouchableOpacity>
       </View>
 

@@ -14,6 +14,7 @@ import { Typography } from '@/constants/theme';
 import { AGENT_PERSONAS } from '@/constants/agentConfig';
 import { useAgent } from '@/context/AgentContext';
 import TibooLogo from './TibooLogo';
+import { themeFromAccent } from '@/hooks/useThemeColors';
 import { AgentAvatar } from '@/types';
 
 export interface MascotAvatarProps {
@@ -68,7 +69,7 @@ export const MascotAvatar: React.FC<MascotAvatarProps> = ({
     return (
       <Image
         source={persona.image}
-        style={[styles.avatar, circle, styles.clip, style as any]}
+        style={[styles.avatar, { backgroundColor: themeFromAccent(activeColor).accentSubtle }, circle, styles.clip, style as any]}
         contentFit="cover"
         transition={150}
       />

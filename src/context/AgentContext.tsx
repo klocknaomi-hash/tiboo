@@ -9,7 +9,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AgentProfile } from '@/types';
-import { DEFAULT_AGENT_PROFILE } from '@/constants/agentConfig';
+import { DEFAULT_AGENT_PROFILE, LEGACY_DEFAULT_GREETINGS } from '@/constants/agentConfig';
 
 const STORAGE_KEY = '@muse/agent-profile';
 
@@ -33,7 +33,12 @@ export const AgentProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     AsyncStorage.getItem(STORAGE_KEY)
       .then((raw) => {
         if (raw) {
-          setAgent({ ...DEFAULT_AGENT_PROFILE, ...JSON.parse(raw) });
+          const saved = { ...DEFAULT_AGENT_PROFILE, ...JSON.parse(raw) };
+          // Old default greeting had "Léo" hard-coded: switch to the {name} template.
+          if (LEGACY_DEFAULT_GREETINGS.includes(saved.greeting)) {
+            saved.greeting = DEFAULT_AGENT_PROFILE.greeting;
+          }
+          setAgent(saved);
         }
       })
       .catch(() => {});

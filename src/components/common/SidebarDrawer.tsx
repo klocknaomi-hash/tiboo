@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
   mainChatCapsule: {
     width: '100%',
     height: 50,
-    backgroundColor: Colors.tabActiveBg, // #E6E8EA
+    backgroundColor: Colors.surface,
     borderRadius: 25,
     justifyContent: 'center',
     paddingHorizontal: 20,
@@ -373,7 +373,6 @@ const styles = StyleSheet.create({
   },
   mainChatCapsuleActive: {
     borderColor: Colors.border,
-    backgroundColor: Colors.tabActiveBg,
   },
   mainChatText: {
     fontSize: 15.5,

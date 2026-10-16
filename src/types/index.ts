@@ -21,6 +21,15 @@ export interface ChatMessage {
   threadId?: string;
   /** Optional raw ISO timestamp */
   createdAt?: string;
+  /** Error notice (AI or server unavailable); shown but never sent back to the AI */
+  isError?: boolean;
+  /** Sensitive action waiting for the user's approval (not persisted) */
+  pendingConfirmation?: {
+    token: string;
+    toolName: string;
+    description: string;
+    arguments: Record<string, unknown>;
+  };
 }
 
 /**

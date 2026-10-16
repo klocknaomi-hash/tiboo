@@ -40,6 +40,7 @@ import {
   Calendar03Icon,
 } from '@hugeicons/core-free-icons';
 import { Colors } from '@/constants/colors';
+import { useThemeColors } from '@/hooks/useThemeColors';
 import { Typography } from '@/constants/theme';
 import { ScheduledTask, TaskExecution, TaskExecutionStatus } from '@/types';
 import { showToast } from '@/context/ToastContext';
@@ -54,13 +55,13 @@ import {
 } from '@/lib/taskService';
 import {
   formatCronToHuman,
-  getNextCronRunDate,
   getUserTimezone,
   isValidCron,
 } from '@/lib/cronUtils';
 
 export default function TasksScreen() {
   const { agent } = useAgent();
+  const theme = useThemeColors();
   const [activeTab, setActiveTab] = useState<'tasks' | 'history'>('tasks');
   const [tasks, setTasks] = useState<ScheduledTask[]>([]);
 
@@ -105,7 +106,7 @@ export default function TasksScreen() {
   const onRefresh = async () => {
     setIsRefreshing(true);
     await loadData();
-    showToast('Données synchronisées avec Supabase');
+    showToast('Données à jour');
   };
 
   // Toggle active / paused
@@ -163,31 +164,16 @@ export default function TasksScreen() {
   const handleRunTask = async (task: ScheduledTask) => {
     if (runningTaskId) return;
     setRunningTaskId(task.id);
-    showToast(`Exécution en direct de "${task.title}"...`);
+    showToast(`Exécution de « ${task.title} »…`);
 
     try {
-      const { execution, result } = await executeScheduledTaskNow(task);
-
-      // Refresh list with new execution
-      setExecutions((prev) => [execution, ...prev]);
-      setTasks((prev) =>
-        prev.map((t) =>
-          t.id === task.id
-            ? {
-                ...t,
-                last_run_at: execution.completed_at || new Date().toISOString(),
-                next_run_at: getNextCronRunDate(task.schedule, new Date(), task.timezone).toISOString(),
-              }
-            : t
-        )
+      const outcome = await executeScheduledTaskNow(task);
+      await loadData();
+      showToast(
+        outcome.status === 'completed'
+          ? `« ${task.title} » exécutée.`
+          : `Échec : ${outcome.message}`
       );
-
-      const summary =
-        result?.agentResponse?.summary ||
-        result?.agentResponse?.actionTaken ||
-        `Exécution réussie pour "${task.title}"`;
-
-      showToast(summary);
     } catch (err: any) {
       showToast(err?.message || 'Échec de l’exécution');
       await loadData();
@@ -262,8 +248,8 @@ export default function TasksScreen() {
       setNewFrequency('daily');
       setNewTime('09:00');
       showToast(`Routine "${created.title}" planifiée avec succès !`);
-    } catch {
-      showToast('Erreur lors de la création');
+    } catch (err: any) {
+      showToast(err?.message || 'Erreur lors de la création');
     } finally {
       setIsSubmitting(false);
     }
@@ -291,12 +277,12 @@ export default function TasksScreen() {
         <View style={styles.headerTextGroup}>
           <Text style={styles.pageTitle}>Tâches & Automatisations</Text>
           <Text style={styles.pageSubtitle}>
-            Routines autonomes planifiées (Supabase pg_cron)
+            Routines exécutées automatiquement par ton agent
           </Text>
         </View>
 
         <TouchableOpacity
-          style={[styles.newGoalBtn, { backgroundColor: agent.color }]}
+          style={[[styles.newGoalBtn, { backgroundColor: theme.accent }], { backgroundColor: agent.color }]}
           onPress={() => setIsNewModalOpen(true)}
           activeOpacity={0.85}>
           <HugeiconsIcon icon={Add01Icon} size={15} color={Colors.white} strokeWidth={2.4} />
@@ -348,8 +334,8 @@ export default function TasksScreen() {
       {/* Main Content Area */}
       {isLoading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-          <Text style={styles.loadingText}>Synchronisation avec Supabase...</Text>
+          <ActivityIndicator size="large" color={theme.accent} />
+          <Text style={styles.loadingText}>Chargement…</Text>
         </View>
       ) : (
         <ScrollView
@@ -360,8 +346,8 @@ export default function TasksScreen() {
             <RefreshControl
               refreshing={isRefreshing}
               onRefresh={onRefresh}
-              tintColor={Colors.primary}
-              colors={[Colors.primary]}
+              tintColor={theme.accent}
+              colors={[theme.accent]}
             />
           }>
           {activeTab === 'tasks' ? (
@@ -376,7 +362,7 @@ export default function TasksScreen() {
                   Demande dans le chat (ex: "Vérifie mon Gmail tous les jours à 9h") ou clique sur "+ Nouveau".
                 </Text>
                 <TouchableOpacity
-                  style={[styles.emptyActionBtn, { backgroundColor: agent.color }]}
+                  style={[[styles.emptyActionBtn, { backgroundColor: theme.accent }], { backgroundColor: agent.color }]}
                   onPress={() => setIsNewModalOpen(true)}>
                   <HugeiconsIcon icon={Add01Icon} size={16} color={Colors.white} strokeWidth={2.2} />
                   <Text style={styles.emptyActionText}>Créer une automatisation</Text>
@@ -472,7 +458,7 @@ export default function TasksScreen() {
                       </TouchableOpacity>
 
                       <TouchableOpacity
-                        style={[styles.runBtn, { backgroundColor: agent.color }, isRunning && styles.runBtnDisabled]}
+                        style={[[styles.runBtn, { backgroundColor: theme.accent }], { backgroundColor: agent.color }, isRunning && styles.runBtnDisabled]}
                         onPress={() => handleRunTask(task)}
                         disabled={isRunning}
                         activeOpacity={0.8}>
@@ -499,7 +485,7 @@ export default function TasksScreen() {
                 </View>
                 <Text style={styles.emptyTitle}>Aucune exécution enregistrée</Text>
                 <Text style={styles.emptySubtitle}>
-                  Les exécutions automatiques de pg_cron et les tests manuels apparaîtront ici.
+                  Les exécutions automatiques et manuelles apparaîtront ici.
                 </Text>
               </View>
             ) : (
@@ -538,7 +524,7 @@ export default function TasksScreen() {
                           styles.historyChip,
                           isCompleted && styles.historyChipSuccess,
                           isFailed && styles.historyChipFailed,
-                          isRunning && styles.historyChipRunning,
+                          isRunning && [styles.historyChipRunning, { backgroundColor: theme.accentSubtle }],
                         ]}>
                         <HugeiconsIcon
                           icon={
@@ -554,7 +540,7 @@ export default function TasksScreen() {
                               ? '#16A34A'
                               : isFailed
                               ? '#DC2626'
-                              : Colors.primary
+                              : theme.accent
                           }
                         />
                         <Text
@@ -562,7 +548,7 @@ export default function TasksScreen() {
                             styles.historyChipText,
                             isCompleted && styles.historyChipTextSuccess,
                             isFailed && styles.historyChipTextFailed,
-                            isRunning && styles.historyChipTextRunning,
+                            isRunning && [styles.historyChipTextRunning, { color: theme.accent }],
                           ]}>
                           {statusLabel}
                         </Text>
@@ -594,7 +580,7 @@ export default function TasksScreen() {
                     )}
 
                     <View style={styles.historyFooter}>
-                      <Text style={styles.historyDetailLink}>Voir les détails de l'exécution →</Text>
+                      <Text style={[styles.historyDetailLink, { color: theme.accent }]}>Voir les détails de l'exécution →</Text>
                     </View>
                   </TouchableOpacity>
                 );
@@ -719,7 +705,7 @@ export default function TasksScreen() {
                     style={[
                       styles.freqPill,
                       newFrequency === item.key && [
-                        styles.freqPillActive,
+                        [styles.freqPillActive, { backgroundColor: theme.accentSubtle, borderColor: theme.accentBorder }],
                         { backgroundColor: `${agent.color}18`, borderColor: agent.color },
                       ],
                     ]}
@@ -727,7 +713,7 @@ export default function TasksScreen() {
                     <Text
                       style={[
                         styles.freqPillText,
-                        newFrequency === item.key && [styles.freqPillTextActive, { color: agent.color }],
+                        newFrequency === item.key && [[styles.freqPillTextActive, { color: theme.accent }], { color: agent.color }],
                       ]}>
                       {item.label}
                     </Text>
@@ -768,7 +754,7 @@ export default function TasksScreen() {
               {/* Submit Button */}
               <TouchableOpacity
                 style={[
-                  styles.modalSubmitBtn,
+                  [styles.modalSubmitBtn, { backgroundColor: theme.accent }],
                   { backgroundColor: agent.color },
                   isSubmitting && styles.modalSubmitBtnDisabled,
                 ]}
@@ -854,7 +840,7 @@ export default function TasksScreen() {
                     {selectedExecution.result.toolsUsed && (
                       <View style={styles.toolsUsedRow}>
                         <Text style={styles.toolsUsedLabel}>Outils utilisés :</Text>
-                        <Text style={styles.toolsUsedValue}>
+                        <Text style={[styles.toolsUsedValue, { color: theme.accent }]}>
                           {Array.isArray(selectedExecution.result.toolsUsed)
                             ? selectedExecution.result.toolsUsed.join(', ')
                             : String(selectedExecution.result.toolsUsed)}

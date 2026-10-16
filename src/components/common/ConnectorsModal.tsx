@@ -1,11 +1,12 @@
 /**
- * Composio Connectors & Connected Apps Modal
+ * Connectors Modal
  *
- * Displays external workspace apps connected to Tiboo via the unified
- * Composio Model Context Protocol (MCP) Server.
+ * Shows the REAL connection status of each app for the signed-in user
+ * (read from the Tiboo server, which asks Composio). "Connecter" opens the
+ * provider's own sign-in page; nothing is marked connected unless it is.
  */
 
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Modal,
   View,
@@ -14,6 +15,8 @@ import {
   TouchableOpacity,
   ScrollView,
   TouchableWithoutFeedback,
+  ActivityIndicator,
+  Linking,
 } from 'react-native';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import {
@@ -25,7 +28,8 @@ import {
 import { Colors } from '@/constants/colors';
 import { Typography } from '@/constants/theme';
 import { showToast } from '@/context/ToastContext';
-import { useAgent } from '@/context/AgentContext';
+import { useThemeColors } from '@/hooks/useThemeColors';
+import { apiFetch } from '@/lib/apiClient';
 
 export interface ConnectorsModalProps {
   visible: boolean;
@@ -38,67 +42,86 @@ interface AppConnector {
   category: string;
   description: string;
   color: string;
-  connected: boolean;
-  userEmail?: string;
 }
 
-const DEFAULT_CONNECTORS: AppConnector[] = [
+const CONNECTOR_CATALOG: AppConnector[] = [
   {
     id: 'gmail',
     name: 'Gmail',
     category: 'Google Workspace',
-    description: 'Lecture des 5 derniers emails non lus, recherche et envoi de messages.',
+    description: 'Lire, rechercher et envoyer des emails (envoi après ta confirmation).',
     color: '#EA4335',
-    connected: true,
-    userEmail: 'utilisateur@gmail.com',
   },
   {
     id: 'googlecalendar',
-    name: 'Google Calendar',
+    name: 'Google Agenda',
     category: 'Google Workspace',
-    description: 'Consultation des prochains événements, détection des créneaux libres.',
+    description: 'Consulter tes prochains événements et en créer (après confirmation).',
     color: '#4285F4',
-    connected: true,
-    userEmail: 'utilisateur@gmail.com',
   },
   {
     id: 'notion',
     name: 'Notion',
     category: 'Documentation',
-    description: 'Recherche de pages, roadmaps, spécifications et notes de réunions.',
+    description: 'Rechercher dans tes pages et en créer (après confirmation).',
     color: '#000000',
-    connected: true,
-    userEmail: 'workspace@notion.so',
   },
   {
     id: 'slack',
     name: 'Slack',
     category: 'Communication',
-    description: 'Veille des canaux prioritaires et notifications d’équipe.',
+    description: 'Lire tes canaux ; tout envoi de message demande ta confirmation.',
     color: '#4A154B',
-    connected: true,
-    userEmail: 'equipe@slack.com',
   },
   {
     id: 'github',
     name: 'GitHub',
     category: 'Développement',
-    description: 'Suivi des pull requests, revues de code et alertes CI/CD.',
+    description: 'Suivre tes dépôts et issues ; toute modification demande ta confirmation.',
     color: '#24292E',
-    connected: true,
-    userEmail: 'dev@github.com',
   },
 ];
 
-export const ConnectorsModal: React.FC<ConnectorsModalProps> = ({ visible, onClose }) => {
-  const { agent } = useAgent();
-  const [connectors, setConnectors] = useState<AppConnector[]>(DEFAULT_CONNECTORS);
+type LoadState = 'loading' | 'ready' | 'unconfigured' | 'error';
 
-  const toggleConnection = (id: string, name: string) => {
-    setConnectors((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, connected: !c.connected } : c))
-    );
-    showToast(`${name} : statut Composio MCP mis à jour`);
+export const ConnectorsModal: React.FC<ConnectorsModalProps> = ({ visible, onClose }) => {
+  const theme = useThemeColors();
+  const [state, setState] = useState<LoadState>('loading');
+  const [errorText, setErrorText] = useState('');
+  const [connections, setConnections] = useState<Record<string, boolean>>({});
+  const [connectingId, setConnectingId] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    setState('loading');
+    try {
+      const res = await apiFetch<{ configured: boolean; connections: Record<string, boolean> }>(
+        '/api/connectors'
+      );
+      setConnections(res.connections || {});
+      setState(res.configured ? 'ready' : 'unconfigured');
+    } catch (err: any) {
+      setErrorText(err?.message || 'Impossible de lire l’état des connecteurs.');
+      setState('error');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (visible) refresh();
+  }, [visible, refresh]);
+
+  const connect = async (connector: AppConnector) => {
+    setConnectingId(connector.id);
+    try {
+      const { redirectUrl } = await apiFetch<{ redirectUrl: string }>('/api/connectors', {
+        body: { toolkit: connector.id },
+      });
+      await Linking.openURL(redirectUrl);
+      showToast(`Termine la connexion à ${connector.name}, puis touche « Actualiser ».`);
+    } catch (err: any) {
+      showToast(err?.message || `Connexion à ${connector.name} impossible.`);
+    } finally {
+      setConnectingId(null);
+    }
   };
 
   return (
@@ -110,9 +133,9 @@ export const ConnectorsModal: React.FC<ConnectorsModalProps> = ({ visible, onClo
               {/* Header */}
               <View style={styles.header}>
                 <View style={styles.titleRow}>
-                  <View style={[styles.badge, { backgroundColor: `${agent.color}15` }]}>
-                    <HugeiconsIcon icon={SparklesIcon} size={14} color={agent.color} strokeWidth={2} />
-                    <Text style={[styles.badgeText, { color: agent.color }]}>Composio MCP Server</Text>
+                  <View style={[styles.badge, { backgroundColor: theme.accentSubtle }]}>
+                    <HugeiconsIcon icon={SparklesIcon} size={14} color={theme.accent} strokeWidth={2} />
+                    <Text style={[[styles.badgeText, { color: theme.accent }], { color: theme.accent }]}>Connecteurs</Text>
                   </View>
                   <TouchableOpacity onPress={onClose} hitSlop={12} style={styles.closeBtn}>
                     <HugeiconsIcon icon={Cancel01Icon} size={20} color={Colors.textMuted} strokeWidth={2} />
@@ -120,14 +143,30 @@ export const ConnectorsModal: React.FC<ConnectorsModalProps> = ({ visible, onClo
                 </View>
                 <Text style={styles.title}>Comptes & Outils Connectés</Text>
                 <Text style={styles.subtitle}>
-                  Tiboo utilise un serveur MCP unique pour dialoguer avec plus de 100 applications
-                  sans coder chaque intégration à la main.
+                  Connecte tes propres comptes. Ton agent ne voit que ceux que tu connectes ici, et
+                  te demande toujours confirmation avant d’envoyer ou de créer quoi que ce soit.
                 </Text>
+                {state === 'unconfigured' && (
+                  <Text style={[styles.subtitle, { color: Colors.warning }]}>
+                    Les connecteurs ne sont pas encore activés sur le serveur Tiboo.
+                  </Text>
+                )}
+                {state === 'error' && (
+                  <Text style={[styles.subtitle, { color: Colors.error }]}>{errorText}</Text>
+                )}
+                <TouchableOpacity onPress={refresh} hitSlop={8} disabled={state === 'loading'}>
+                  <Text style={[styles.refreshText, { color: theme.accent }]}>
+                    {state === 'loading' ? 'Chargement…' : 'Actualiser'}
+                  </Text>
+                </TouchableOpacity>
               </View>
 
               {/* Connector List */}
               <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
-                {connectors.map((connector) => (
+                {CONNECTOR_CATALOG.map((connector) => {
+                  const connected = connections[connector.id] === true;
+                  const canConnect = state === 'ready' && !connected;
+                  return (
                   <View key={connector.id} style={styles.connectorItem}>
                     <View style={[styles.appEmblem, { backgroundColor: connector.color }]}>
                       <Text style={styles.emblemText}>{connector.name.slice(0, 1)}</Text>
@@ -138,52 +177,47 @@ export const ConnectorsModal: React.FC<ConnectorsModalProps> = ({ visible, onClo
                         <View
                           style={[
                             styles.statusPill,
-                            connector.connected ? styles.statusPillActive : styles.statusPillInactive,
+                            connected ? styles.statusPillActive : styles.statusPillInactive,
                           ]}>
                           <HugeiconsIcon
                             icon={CheckmarkCircle02Icon}
                             size={12}
-                            color={connector.connected ? '#15803D' : Colors.textMuted}
+                            color={connected ? Colors.success : Colors.textMuted}
                             strokeWidth={2}
                           />
                           <Text
                             style={[
                               styles.statusText,
-                              { color: connector.connected ? '#15803D' : Colors.textMuted },
+                              { color: connected ? Colors.success : Colors.textMuted },
                             ]}>
-                            {connector.connected ? 'Connecté' : 'Non connecté'}
+                            {state === 'loading' ? '…' : connected ? 'Connecté' : 'Non connecté'}
                           </Text>
                         </View>
                       </View>
                       <Text style={styles.appDescription}>{connector.description}</Text>
-                      {connector.userEmail && connector.connected ? (
-                        <Text style={styles.accountEmail}>Compte : {connector.userEmail}</Text>
-                      ) : null}
                     </View>
-                    <TouchableOpacity
-                      style={[
-                        styles.actionBtn,
-                        connector.connected
-                          ? styles.actionBtnOutline
-                          : [styles.actionBtnPrimary, { backgroundColor: agent.color }],
-                      ]}
-                      onPress={() => toggleConnection(connector.id, connector.name)}
-                      activeOpacity={0.7}
-                      accessibilityLabel={`${connector.connected ? 'Déconnecter' : 'Connecter'} ${connector.name}`}>
-                      <HugeiconsIcon
-                        icon={LinkSquare02Icon}
-                        size={14}
-                        color={connector.connected ? Colors.textMuted : Colors.white}
-                        strokeWidth={2}
-                      />
-                    </TouchableOpacity>
+                    {canConnect && (
+                      <TouchableOpacity
+                        style={[styles.actionBtn, [styles.actionBtnPrimary, { backgroundColor: theme.accent }], { backgroundColor: theme.accent }]}
+                        onPress={() => connect(connector)}
+                        disabled={connectingId !== null}
+                        activeOpacity={0.7}
+                        accessibilityLabel={`Connecter ${connector.name}`}>
+                        {connectingId === connector.id ? (
+                          <ActivityIndicator size="small" color={theme.onAccent} />
+                        ) : (
+                          <HugeiconsIcon icon={LinkSquare02Icon} size={14} color={theme.onAccent} strokeWidth={2} />
+                        )}
+                      </TouchableOpacity>
+                    )}
                   </View>
-                ))}
+                  );
+                })}
 
                 <View style={styles.footerNote}>
                   <Text style={styles.footerNoteText}>
-                    ✨ 100+ autres intégrations (Reddit, Google Docs, Linear, Jira...) sont prêtes à être
-                    activées via le serveur Composio MCP.
+                    Les connexions passent par Composio, qui gère l’authentification de chaque
+                    application. Tu peux révoquer un accès à tout moment depuis le compte concerné.
                   </Text>
                 </View>
               </ScrollView>
@@ -196,6 +230,11 @@ export const ConnectorsModal: React.FC<ConnectorsModalProps> = ({ visible, onClo
 };
 
 const styles = StyleSheet.create({
+  refreshText: {
+    marginTop: 8,
+    fontSize: 14,
+    fontFamily: Typography.semibold,
+  },
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.45)',

@@ -306,6 +306,7 @@ export const EditAgentModal: React.FC<EditAgentModalProps> = ({ visible, onClose
                       multiline
                       maxLength={240}
                     />
+                    <Text style={styles.hint}>« {'{name}'} » sera remplacé par le nom de l’agent.</Text>
                   </View>
 
                   {/* Theme Accent Color */}
@@ -373,6 +374,12 @@ export const EditAgentModal: React.FC<EditAgentModalProps> = ({ visible, onClose
 };
 
 const styles = StyleSheet.create({
+  hint: {
+    marginTop: 6,
+    fontSize: 12,
+    fontFamily: Typography.regular,
+    color: Colors.textMuted,
+  },
   overlay: {
     flex: 1,
     backgroundColor: Colors.overlay,

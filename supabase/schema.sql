@@ -96,22 +96,22 @@ alter table public.chat_threads enable row level security;
 drop policy if exists "Users can read their own chat threads" on public.chat_threads;
 create policy "Users can read their own chat threads"
   on public.chat_threads for select
-  using (auth.uid() = user_id or user_id is null);
+  using (auth.uid() = user_id);
 
 drop policy if exists "Users can insert their own chat threads" on public.chat_threads;
 create policy "Users can insert their own chat threads"
   on public.chat_threads for insert
-  with check (auth.uid() = user_id or user_id is null);
+  with check (auth.uid() = user_id);
 
 drop policy if exists "Users can update their own chat threads" on public.chat_threads;
 create policy "Users can update their own chat threads"
   on public.chat_threads for update
-  using (auth.uid() = user_id or user_id is null);
+  using (auth.uid() = user_id);
 
 drop policy if exists "Users can delete their own chat threads" on public.chat_threads;
 create policy "Users can delete their own chat threads"
   on public.chat_threads for delete
-  using (auth.uid() = user_id or user_id is null);
+  using (auth.uid() = user_id);
 
 -- ------------------------------------------------------------------------------
 -- 4. Chat Messages Table (Messages per threadId: Main Chat + SideChats)
@@ -131,22 +131,22 @@ alter table public.chat_messages enable row level security;
 drop policy if exists "Users can read their own chat messages" on public.chat_messages;
 create policy "Users can read their own chat messages"
   on public.chat_messages for select
-  using (auth.uid() = user_id or user_id is null);
+  using (auth.uid() = user_id);
 
 drop policy if exists "Users can insert their own chat messages" on public.chat_messages;
 create policy "Users can insert their own chat messages"
   on public.chat_messages for insert
-  with check (auth.uid() = user_id or user_id is null);
+  with check (auth.uid() = user_id);
 
 drop policy if exists "Users can update their own chat messages" on public.chat_messages;
 create policy "Users can update their own chat messages"
   on public.chat_messages for update
-  using (auth.uid() = user_id or user_id is null);
+  using (auth.uid() = user_id);
 
 drop policy if exists "Users can delete their own chat messages" on public.chat_messages;
 create policy "Users can delete their own chat messages"
   on public.chat_messages for delete
-  using (auth.uid() = user_id or user_id is null);
+  using (auth.uid() = user_id);
 
 -- Performance indexes
 create index if not exists idx_chat_messages_thread_id on public.chat_messages ("threadId");
@@ -208,22 +208,22 @@ alter table public.scheduled_tasks enable row level security;
 drop policy if exists "Users can read their own scheduled tasks" on public.scheduled_tasks;
 create policy "Users can read their own scheduled tasks"
   on public.scheduled_tasks for select
-  using (auth.uid() = user_id or user_id is null);
+  using (auth.uid() = user_id);
 
 drop policy if exists "Users can insert their own scheduled tasks" on public.scheduled_tasks;
 create policy "Users can insert their own scheduled tasks"
   on public.scheduled_tasks for insert
-  with check (auth.uid() = user_id or user_id is null);
+  with check (auth.uid() = user_id);
 
 drop policy if exists "Users can update their own scheduled tasks" on public.scheduled_tasks;
 create policy "Users can update their own scheduled tasks"
   on public.scheduled_tasks for update
-  using (auth.uid() = user_id or user_id is null);
+  using (auth.uid() = user_id);
 
 drop policy if exists "Users can delete their own scheduled tasks" on public.scheduled_tasks;
 create policy "Users can delete their own scheduled tasks"
   on public.scheduled_tasks for delete
-  using (auth.uid() = user_id or user_id is null);
+  using (auth.uid() = user_id);
 
 -- ------------------------------------------------------------------------------
 -- 7. Task Executions Table (History of Scheduled Runs)
@@ -247,7 +247,7 @@ create policy "Users can read their own task executions"
   using (
     task_id in (
       select id from public.scheduled_tasks
-      where auth.uid() = user_id or user_id is null
+      where user_id = auth.uid()
     )
   );
 
@@ -257,7 +257,7 @@ create policy "Users can insert their own task executions"
   with check (
     task_id in (
       select id from public.scheduled_tasks
-      where auth.uid() = user_id or user_id is null
+      where user_id = auth.uid()
     )
   );
 
@@ -267,7 +267,7 @@ create policy "Users can update their own task executions"
   using (
     task_id in (
       select id from public.scheduled_tasks
-      where auth.uid() = user_id or user_id is null
+      where user_id = auth.uid()
     )
   );
 
@@ -289,36 +289,25 @@ create or replace function public.trigger_due_scheduled_tasks()
 returns void as $$
 declare
   task record;
-  supabase_project_url text;
-  service_role_key text;
+  supabase_project_url text := current_setting('app.settings.supabase_url', true);
+  service_role_key text := current_setting('app.settings.service_role_key', true);
 begin
-  supabase_project_url := coalesce(
-    current_setting('app.settings.supabase_url', true),
-    'https://<your-project-ref>.supabase.co'
-  );
-  service_role_key := coalesce(
-    current_setting('app.settings.service_role_key', true),
-    '<SUPABASE_SERVICE_ROLE_KEY>'
-  );
+  if supabase_project_url is null or service_role_key is null then
+    raise notice 'app.settings.supabase_url / service_role_key not set: scheduled tasks not dispatched';
+    return;
+  end if;
 
-  -- Scan for tasks that are due and active
   for task in
-    select id, instruction, schedule, timezone
-    from public.scheduled_tasks
-    where is_active = true
-      and next_run_at <= now()
+    select id from public.scheduled_tasks
+    where is_active = true and user_id is not null and next_run_at <= now()
+    for update skip locked
   loop
-    -- 1. Create a queued execution entry
-    insert into public.task_executions (task_id, status, created_at)
-    values (task.id, 'queued', now());
-
-    -- 2. Bump last_run_at to avoid re-triggering within the same minute
+    -- Provisional claim so the next cron tick does not dispatch it again;
+    -- the Tiboo server sets the real next_run_at when it runs the task.
     update public.scheduled_tasks
-    set last_run_at = now(),
-        updated_at = now()
-    where id = task.id;
+      set next_run_at = now() + interval '1 hour', updated_at = now()
+      where id = task.id;
 
-    -- 3. Trigger the Supabase Edge Function asynchronously
     perform net.http_post(
       url := supabase_project_url || '/functions/v1/execute-scheduled-task',
       headers := jsonb_build_object(
@@ -329,7 +318,9 @@ begin
     );
   end loop;
 end;
-$$ language plpgsql security definer;
+$$ language plpgsql security definer set search_path = public;
+
+revoke execute on function public.trigger_due_scheduled_tasks() from public, anon, authenticated;
 
 -- ------------------------------------------------------------------------------
 -- 9. Schedule the pg_cron job (Runs every minute or every 15 minutes)

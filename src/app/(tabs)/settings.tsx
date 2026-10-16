@@ -254,7 +254,7 @@ export default function SettingsScreen() {
             <View style={styles.listIconCol}>
               <HugeiconsIcon icon={Grid02Icon} size={22} color={Colors.iconDark} strokeWidth={2} />
             </View>
-            <Text style={styles.listLabel}>Connecteurs (Composio MCP)</Text>
+            <Text style={styles.listLabel}>Connecteurs</Text>
             <HugeiconsIcon icon={ArrowRight01Icon} size={20} color={Colors.iconMuted} strokeWidth={1.8} />
           </TouchableOpacity>
 
@@ -597,7 +597,7 @@ export default function SettingsScreen() {
                     <View style={styles.pricingFeatures}>
                       <Text style={styles.featureItem}>✓ 1 000 crédits d’exécution / semaine</Text>
                       <Text style={styles.featureItem}>✓ 1 agent autonome personnalisable</Text>
-                      <Text style={styles.featureItem}>✓ Intégrations Composio MCP (Gmail, Notion)</Text>
+                      <Text style={styles.featureItem}>✓ Connecteurs Gmail, Agenda, Notion, Slack, GitHub</Text>
                     </View>
                     <View style={styles.currentPlanTag}>
                       <Text style={styles.currentPlanTagText}>Forfait actuel</Text>
@@ -618,7 +618,7 @@ export default function SettingsScreen() {
                       <Text style={styles.featureItem}>✓ Crédits et exécutions illimités</Text>
                       <Text style={styles.featureItem}>✓ Navigateur cloud haute vitesse Stagehand</Text>
                       <Text style={styles.featureItem}>✓ Jusqu’à 4 agents autonomes simultanés</Text>
-                      <Text style={styles.featureItem}>✓ Routines pg_cron en arrière-plan 24/7</Text>
+                      <Text style={styles.featureItem}>✓ Routines automatiques en arrière-plan 24/7</Text>
                     </View>
                     <TouchableOpacity
                       style={[styles.modalSaveBtn, { backgroundColor: agent.color }]}
@@ -701,7 +701,7 @@ export default function SettingsScreen() {
                 <View style={styles.toggleRow}>
                   <View style={styles.toggleInfo}>
                     <Text style={styles.toggleTitle}>Alertes d’exécutions de tâches</Text>
-                    <Text style={styles.toggleDesc}>Notification dès qu'une routine pg_cron se termine.</Text>
+                    <Text style={styles.toggleDesc}>Notification dès qu'une routine se termine.</Text>
                   </View>
                   <Switch
                     value={notifTasks}
@@ -775,14 +775,14 @@ export default function SettingsScreen() {
                   <View style={styles.faqCard}>
                     <Text style={styles.faqQuestion}>Comment connecter mes outils (Gmail, Notion) ?</Text>
                     <Text style={styles.faqAnswer}>
-                      Rendez-vous dans la rubrique « Connecteurs (Composio MCP) » et activez les applications autorisées en 1 clic.
+                      Rendez-vous dans la rubrique « Connecteurs » et activez les applications autorisées en 1 clic.
                     </Text>
                   </View>
 
                   <View style={styles.faqCard}>
                     <Text style={styles.faqQuestion}>Comment fonctionnent les tâches en arrière-plan ?</Text>
                     <Text style={styles.faqAnswer}>
-                      Tiboo s'appuie sur le moteur pg_cron de Supabase pour déclencher automatiquement vos routines à l’horaire souhaité, même lorsque l’application est fermée.
+                      Tiboo déclenche automatiquement vos routines à l’horaire souhaité, même lorsque l’application est fermée.
                     </Text>
                   </View>
 

@@ -15,6 +15,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { Colors } from '@/constants/colors';
+import { useThemeColors } from '@/hooks/useThemeColors';
 import { Typography } from '@/constants/theme';
 
 interface ToastContextType {
@@ -35,6 +36,7 @@ export const showToast = (message: string, duration?: number) => {
 };
 
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const theme = useThemeColors();
   const [toastMessage, setToastMessage] = useState<string>('');
   const [visible, setVisible] = useState<boolean>(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -101,7 +103,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 transform: [{ translateY: translateYAnim }],
               },
             ]}>
-            <View style={styles.indicatorDot} />
+            <View style={[styles.indicatorDot, { backgroundColor: theme.accent }]} />
             <Text style={styles.toastText} numberOfLines={2}>
               {toastMessage}
             </Text>

@@ -9,8 +9,9 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
+import { apiFetch } from '@/lib/apiClient';
 import { ScheduledTask, TaskExecution, TaskExecutionStatus } from '@/types';
-import { getNextCronRunDate, getUserTimezone, formatCronToHuman } from './cronUtils';
+import { getNextCronRunDate, getUserTimezone } from './cronUtils';
 
 const STORAGE_KEYS = {
   TASKS: '@tiboo_scheduled_tasks_v1',
@@ -233,40 +234,32 @@ export async function createScheduledTask(
     updated_at: new Date().toISOString(),
   };
 
-  // 1. Try Supabase insert
-  try {
-    const { data, error } = await supabase
-      .from('scheduled_tasks')
-      .insert({
-        id: newTask.id,
-        user_id: newTask.user_id,
-        agent_id: newTask.agent_id,
-        title: newTask.title,
-        instruction: newTask.instruction,
-        schedule: newTask.schedule,
-        timezone: newTask.timezone,
-        is_active: newTask.is_active,
-        next_run_at: newTask.next_run_at,
-        last_run_at: newTask.last_run_at,
-        status: newTask.status,
-      })
-      .select()
-      .single();
-
-    if (!error && data) {
-      const local = await getLocalTasks();
-      await saveLocalTasks([data as ScheduledTask, ...local.filter((t) => t.id !== data.id)]);
-      return data as ScheduledTask;
-    }
-  } catch (err) {
-    console.warn('[taskService] Supabase insert failed, saving locally:', err);
+  if (!userId) {
+    throw new Error('Connecte-toi avec un compte Tiboo pour créer une tâche.');
   }
 
-  // 2. Local fallback
+  const { data, error } = await supabase
+    .from('scheduled_tasks')
+    .insert({
+      user_id: newTask.user_id,
+      agent_id: newTask.agent_id,
+      title: newTask.title,
+      instruction: newTask.instruction,
+      schedule: newTask.schedule,
+      timezone: newTask.timezone,
+      is_active: newTask.is_active,
+      next_run_at: newTask.next_run_at,
+      status: newTask.status,
+    })
+    .select()
+    .single();
+
+  if (error || !data) {
+    throw new Error(error?.message || "La tâche n'a pas pu être enregistrée.");
+  }
   const local = await getLocalTasks();
-  const updated = [newTask, ...local.filter((t) => t.id !== newTask.id)];
-  await saveLocalTasks(updated);
-  return newTask;
+  await saveLocalTasks([data as ScheduledTask, ...local.filter((t) => t.id !== data.id)]);
+  return data as ScheduledTask;
 }
 
 /**
@@ -433,148 +426,16 @@ export async function recordTaskExecution(
 }
 
 /**
- * Manually executes a scheduled task right now
- *
- * 1. Inserts a running execution record
- * 2. Runs the agent with the stored instruction & connected tools
- * 3. Updates scheduled_tasks: last_run_at = now(), next_run_at = computed from cron
- * 4. Updates execution record: status = 'completed' (or 'failed')
+ * Runs a task now on the Tiboo server (real agent, real tools).
+ * The server records the execution in task_executions and returns its real
+ * outcome; nothing is simulated here.
  */
 export async function executeScheduledTaskNow(
   task: ScheduledTask
-): Promise<{ execution: TaskExecution; result: any }> {
-  const executionId = generateUuid();
-  const startTime = new Date().toISOString();
-
-  // 1. Create running execution record
-  await recordTaskExecution({
-    id: executionId,
-    task_id: task.id,
-    task_title: task.title || task.instruction,
-    status: 'running',
-    created_at: startTime,
-    started_at: startTime,
-  });
-
-  try {
-    // 2. Run agent via server API route or local resilient fallback
-    const mockTaskGoal = {
-      id: task.id,
-      title: task.title || task.instruction,
-      schedule: formatCronToHuman(task.schedule),
-      status: 'active' as const,
-      runsCount: 1,
-    };
-
-    let agentResult: any = null;
-    try {
-      const response = await fetch('/api/tasks/run', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ task: mockTaskGoal }),
-      });
-      if (response.ok) {
-        const payload = await response.json();
-        agentResult = payload?.result;
-      }
-    } catch {
-      // Offline or direct client execution fallback
-    }
-
-    if (!agentResult) {
-      const title = task.title || task.instruction;
-      const lower = title.toLowerCase();
-      let fallbackMessage = `J'ai exécuté avec succès la routine programmée "${title}".`;
-      let toolsUsed = ['task_runner'];
-
-      if (lower.includes('mail') || lower.includes('gmail')) {
-        fallbackMessage = `J'ai vérifié vos emails récents sur Gmail. Les messages importants ont été analysés et aucun élément urgent n'est en attente.`;
-        toolsUsed = ['composio_gmail'];
-      } else if (lower.includes('notion')) {
-        fallbackMessage = `J'ai synchronisé les documents et revu les tâches de projet dans Notion. Tout est à jour.`;
-        toolsUsed = ['composio_notion'];
-      } else if (
-        lower.includes('calendrier') ||
-        lower.includes('agenda') ||
-        lower.includes('workout') ||
-        lower.includes('health')
-      ) {
-        fallbackMessage = `Briefing complété : calendrier synchronisé avec les prochains événements prévus.`;
-        toolsUsed = ['composio_google_calendar'];
-      }
-
-      agentResult = {
-        taskId: task.id,
-        taskTitle: title,
-        executedAt: new Date().toISOString(),
-        success: true,
-        agentResponse: {
-          message: fallbackMessage,
-          summary: `Routine "${title}" exécutée avec succès.`,
-          suggestedActions: ['Voir le rapport complet', 'Modifier la fréquence'],
-          actionTaken: `Exécution programmée via ${toolsUsed.join(', ')}`,
-        },
-        toolsUsed,
-      };
-    }
-
-    const completedTime = new Date().toISOString();
-    const nextRun = getNextCronRunDate(task.schedule, new Date(), task.timezone).toISOString();
-
-    // 3. Update scheduled_tasks table
-    try {
-      await supabase
-        .from('scheduled_tasks')
-        .update({
-          last_run_at: completedTime,
-          next_run_at: nextRun,
-          status: 'active',
-          updated_at: completedTime,
-        })
-        .eq('id', task.id);
-    } catch {
-      // Local fallback
-      const local = await getLocalTasks();
-      await saveLocalTasks(
-        local.map((t) =>
-          t.id === task.id ? { ...t, last_run_at: completedTime, next_run_at: nextRun } : t
-        )
-      );
-    }
-
-    // 4. Update execution record with success
-    const completedExec = await recordTaskExecution({
-      id: executionId,
-      task_id: task.id,
-      task_title: task.title || task.instruction,
-      status: 'completed',
-      result: {
-        agentResponse: agentResult.agentResponse,
-        toolsUsed: agentResult.toolsUsed,
-        summary: agentResult.agentResponse.summary || agentResult.agentResponse.message,
-      },
-      created_at: startTime,
-      started_at: startTime,
-      completed_at: completedTime,
-      error: null,
-    });
-
-    return { execution: completedExec, result: agentResult };
-  } catch (err: any) {
-    const failedTime = new Date().toISOString();
-    const errorMsg = err?.message || 'Erreur lors de l’exécution de la tâche';
-
-    const failedExec = await recordTaskExecution({
-      id: executionId,
-      task_id: task.id,
-      task_title: task.title || task.instruction,
-      status: 'failed',
-      created_at: startTime,
-      started_at: startTime,
-      completed_at: failedTime,
-      error: errorMsg,
-    });
-
-    throw new Error(errorMsg);
-  }
+): Promise<{ status: 'completed' | 'failed'; message: string }> {
+  const outcome = await apiFetch<{ status: 'completed' | 'failed'; message: string }>(
+    '/api/tasks/run',
+    { body: { taskId: task.id } }
+  );
+  return { status: outcome.status, message: outcome.message };
 }

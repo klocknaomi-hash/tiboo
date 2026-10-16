@@ -22,11 +22,10 @@ import {
   clearThreadMessages,
   formatDisplayTime,
 } from '@/lib/chatService';
-import { DEFAULT_AGENT_RESPONSES } from '@/constants/agentInstructions';
 import { useAgent } from '@/context/AgentContext';
 import { useAuth } from '@/context/AuthContext';
-import { extractSchedulingFromText, getNextCronRunDate } from '@/lib/cronUtils';
-import { createScheduledTask } from '@/lib/taskService';
+import { apiFetch } from '@/lib/apiClient';
+import { getUserTimezone } from '@/lib/cronUtils';
 
 interface ChatContextType {
   /** Active thread identifier (defaults to MAIN_THREAD_ID) */
@@ -47,6 +46,8 @@ interface ChatContextType {
   createNewChat: (title?: string) => Promise<string>;
   /** Send a message and persist both user utterance and agent reply to Supabase */
   sendMessage: (content: string) => Promise<void>;
+  /** Approve or refuse an action the agent paused for confirmation */
+  respondToConfirmation: (messageId: string, approve: boolean) => Promise<void>;
   /** Rename a conversation */
   renameThread: (threadId: string, newTitle: string) => Promise<void>;
   /** Delete a conversation */
@@ -155,126 +156,106 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await refreshThreads();
   }, [activeThreadId, refreshThreads]);
 
-  // Send message with automatic Supabase persistence for user + agent
+  interface AgentApiReply {
+    reply: string;
+    requiresConfirmation?: ChatMessage['pendingConfirmation'];
+  }
+
+  /** Shows the agent's real answer, or the real error: never an invented reply. */
+  const handleAgentCall = useCallback(
+    async (threadId: string, call: () => Promise<AgentApiReply>) => {
+      setIsTyping(true);
+      try {
+        const payload = await call();
+        if (payload.requiresConfirmation) {
+          // Not persisted: the confirmation token is short-lived.
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `confirm-${Date.now()}`,
+              sender: 'agent',
+              text: payload.reply,
+              timestamp: formatDisplayTime(new Date().toISOString()),
+              pendingConfirmation: payload.requiresConfirmation,
+            },
+          ]);
+        } else {
+          const agentMsg = await saveChatMessage({
+            threadId,
+            role: 'assistant',
+            content: payload.reply,
+          });
+          setMessages((prev) => [...prev, agentMsg]);
+        }
+      } catch (err: any) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `error-${Date.now()}`,
+            sender: 'system',
+            text: err?.message || "L'agent n'a pas pu répondre.",
+            timestamp: formatDisplayTime(new Date().toISOString()),
+            isError: true,
+          },
+        ]);
+      } finally {
+        setIsTyping(false);
+        await refreshThreads();
+      }
+    },
+    [refreshThreads]
+  );
+
   const sendMessage = useCallback(
     async (text: string) => {
       const trimmed = text.trim();
       if (!trimmed) return;
-
       const currentThread = activeThreadId;
 
-      // 1. Persist user message to Supabase chat_messages table
-      const userMsg = await saveChatMessage({
-        threadId: currentThread,
-        role: 'user',
-        content: trimmed,
-      });
+      // Recent conversation (errors and pending confirmations excluded)
+      const history = messages
+        .filter((m) => !m.isError && !m.pendingConfirmation && m.sender !== 'system')
+        .slice(-20)
+        .map((m) => ({ role: m.sender === 'user' ? 'user' : 'assistant', content: m.text }));
 
-      // Optimistic UI update
+      const userMsg = await saveChatMessage({ threadId: currentThread, role: 'user', content: trimmed });
       setMessages((prev) => [...prev, userMsg]);
-      setIsTyping(true);
 
-      // Helper to generate the agent response
-      let agentReply = '';
-
-      // Check if user is asking to schedule a recurring task (Requirement 5)
-      const recurring = extractSchedulingFromText(trimmed);
-      if (recurring && recurring.isRecurring) {
-        try {
-          await createScheduledTask({
-            instruction: recurring.instruction,
-            schedule: recurring.schedule,
-            title: recurring.title,
-            timezone: recurring.timezone,
-          });
-        } catch (err) {
-          console.warn('[ChatContext] Error creating scheduled task:', err);
-        }
-
-        const nextRun = getNextCronRunDate(recurring.schedule, new Date(), recurring.timezone);
-        const nextRunStr = nextRun.toLocaleDateString('fr-FR', {
-          weekday: 'long',
-          day: 'numeric',
-          month: 'long',
-          hour: '2-digit',
-          minute: '2-digit',
-        });
-
-        agentReply =
-          `🤖 **Tâche récurrente planifiée avec succès !**\n\n` +
-          `J'ai bien enregistré ton automatisation dans tes tâches programmées :\n\n` +
-          `• **Objectif :** ${recurring.title}\n` +
-          `• **Instruction :** ${recurring.instruction}\n` +
-          `• **Fréquence :** ${recurring.scheduleLabel} (\`${recurring.schedule}\`)\n` +
-          `• **Fuseau horaire :** ${recurring.timezone}\n` +
-          `• **Prochaine exécution :** ${nextRunStr}\n\n` +
-          `Elle se déclenchera automatiquement en arrière-plan via Supabase pg_cron. Tu peux la retrouver, la suspendre ou la déclencher manuellement dans l'onglet **Tasks**.`;
-      } else {
-        try {
-          // Attempt server-side agent execution via Expo Router API
-          const response = await fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: trimmed }),
-          });
-
-          if (response.ok) {
-            const payload = await response.json();
-            agentReply = payload?.reply || payload?.data?.message;
-          }
-        } catch {
-          // Fallback below
-        }
-      }
-
-      // If server API route didn't return or on mobile fallback
-      if (!agentReply) {
-        const lower = trimmed.toLowerCase();
-        if (lower.includes('mail') || lower.includes('email') || lower.includes('gmail')) {
-          agentReply = DEFAULT_AGENT_RESPONSES.gmail();
-        } else if (
-          lower.includes('calendrier') ||
-          lower.includes('agenda') ||
-          lower.includes('événement')
-        ) {
-          agentReply = DEFAULT_AGENT_RESPONSES.calendar();
-        } else if (lower.includes('notion') || lower.includes('doc')) {
-          agentReply = DEFAULT_AGENT_RESPONSES.notion();
-        } else if (
-          lower.includes('http') ||
-          lower.includes('.com') ||
-          lower.includes('.fr') ||
-          lower.includes('ouvre') ||
-          lower.includes('site') ||
-          lower.includes('web') ||
-          lower.includes('browse') ||
-          lower.includes('tableau') ||
-          lower.includes('navigue')
-        ) {
-          const prefersTable = lower.includes('tableau') || lower.includes('table');
-          agentReply = prefersTable
-            ? DEFAULT_AGENT_RESPONSES.browserTable()
-            : DEFAULT_AGENT_RESPONSES.browserList();
-        } else {
-          agentReply = DEFAULT_AGENT_RESPONSES.generic(agent.name);
-        }
-      }
-
-      // 2. Persist agent reply to Supabase chat_messages table
-      const agentMsg = await saveChatMessage({
-        threadId: currentThread,
-        role: 'assistant',
-        content: agentReply,
-      });
-
-      // Update UI state
-      setMessages((prev) => [...prev, agentMsg]);
-      setIsTyping(false);
-
-      // Refresh threads preview
-      await refreshThreads();
+      await handleAgentCall(currentThread, () =>
+        apiFetch<AgentApiReply>('/api/chat', {
+          body: {
+            message: trimmed,
+            history,
+            persona: { name: agent.name, role: agent.subtitle },
+            timezone: getUserTimezone(),
+          },
+        })
+      );
     },
-    [activeThreadId, agent.name, refreshThreads]
+    [activeThreadId, messages, agent.name, agent.subtitle, handleAgentCall]
+  );
+
+  const respondToConfirmation = useCallback(
+    async (messageId: string, approve: boolean) => {
+      const pending = messages.find((m) => m.id === messageId)?.pendingConfirmation;
+      if (!pending) return;
+      // Lock the card so the action cannot be confirmed twice.
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === messageId
+            ? {
+                ...m,
+                pendingConfirmation: undefined,
+                text: approve ? `✅ Confirmé : ${pending.description}` : `✖️ Refusé : ${pending.description}`,
+              }
+            : m
+        )
+      );
+      await handleAgentCall(activeThreadId, () =>
+        apiFetch<AgentApiReply>('/api/chat/confirm', { body: { token: pending.token, approve } })
+      );
+    },
+    [messages, activeThreadId, handleAgentCall]
   );
 
   const activeThread = threads.find((t) => t.id === activeThreadId);
@@ -291,6 +272,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setActiveThreadId,
         createNewChat,
         sendMessage,
+        respondToConfirmation,
         renameThread,
         deleteThread,
         clearActiveThreadMessages,

@@ -35,13 +35,18 @@ import { showToast } from '@/context/ToastContext';
 import { useAgent } from '@/context/AgentContext';
 import { useChat } from '@/context/ChatContext';
 import { MascotAvatar } from '@/components/common';
+import { useThemeColors } from '@/hooks/useThemeColors';
+import { formatGreeting } from '@/constants/agentConfig';
 
 export default function ChatScreen() {
   const { agent } = useAgent();
+  const theme = useThemeColors();
+  const greeting = formatGreeting(agent.greeting, agent.name);
   const {
     messages,
     isTyping,
     sendMessage,
+    respondToConfirmation,
     activeThread,
   } = useChat();
 
@@ -115,7 +120,7 @@ export default function ChatScreen() {
                   <MascotAvatar size={28} style={styles.messageAvatar} />
                   <View style={[styles.bubble, styles.agentBubble]}>
                     <Text style={[styles.bubbleText, styles.agentBubbleText]}>
-                      {agent.greeting}
+                      {greeting}
                     </Text>
                   </View>
                 </View>
@@ -124,13 +129,20 @@ export default function ChatScreen() {
               {/* Messages */}
               {messages.map((msg) => {
                 const isUser = msg.sender === 'user';
-                // The seeded agent message shows the agent's customizable greeting
-                const text = msg.id === 'msg-2' ? agent.greeting : msg.text;
+                const text = msg.id === 'msg-2' ? greeting : msg.text;
+                const pending = msg.pendingConfirmation;
+
+                if (msg.isError) {
+                  return (
+                    <View key={msg.id} style={styles.errorRow} accessibilityRole="alert">
+                      <Text style={styles.errorText}>⚠️ {text}</Text>
+                    </View>
+                  );
+                }
+
                 return (
-                  <TouchableOpacity
+                  <View
                     key={msg.id}
-                    activeOpacity={0.8}
-                    onPress={() => showToast(text)}
                     style={[
                       styles.messageRow,
                       isUser ? styles.userMessageRow : styles.agentMessageRow,
@@ -140,18 +152,47 @@ export default function ChatScreen() {
                       style={[
                         styles.bubble,
                         isUser
-                          ? [styles.userBubble, { backgroundColor: agent.color }]
+                          ? [styles.userBubble, { backgroundColor: theme.accent }]
                           : styles.agentBubble,
                       ]}>
                       <Text
+                        selectable
                         style={[
                           styles.bubbleText,
-                          isUser ? styles.userBubbleText : styles.agentBubbleText,
+                          isUser ? [styles.userBubbleText, { color: theme.onAccent }] : styles.agentBubbleText,
                         ]}>
                         {text}
                       </Text>
+
+                      {pending && (
+                        <View style={[styles.confirmCard, { borderColor: theme.accentBorder }]}>
+                          <Text style={styles.confirmTitle}>{pending.description}</Text>
+                          {Object.entries(pending.arguments)
+                            .filter(([, v]) => v !== null && v !== '' && typeof v !== 'object')
+                            .map(([k, v]) => (
+                              <Text key={k} style={styles.confirmDetail} numberOfLines={4}>
+                                <Text style={styles.confirmKey}>{k} : </Text>
+                                {String(v)}
+                              </Text>
+                            ))}
+                          <View style={styles.confirmActions}>
+                            <TouchableOpacity
+                              style={styles.refuseBtn}
+                              onPress={() => respondToConfirmation(msg.id, false)}
+                              accessibilityRole="button">
+                              <Text style={styles.refuseText}>Refuser</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={[styles.approveBtn, { backgroundColor: theme.accent }]}
+                              onPress={() => respondToConfirmation(msg.id, true)}
+                              accessibilityRole="button">
+                              <Text style={[styles.approveText, { color: theme.onAccent }]}>Confirmer</Text>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      )}
                     </View>
-                  </TouchableOpacity>
+                  </View>
                 );
               })}
 
@@ -165,7 +206,7 @@ export default function ChatScreen() {
                         styles.agentBubbleText,
                         { fontStyle: 'italic', color: Colors.textMuted },
                       ]}>
-                      {agent.name} consulte vos outils Composio...
+                      {agent.name} réfléchit…
                     </Text>
                   </View>
                 </View>
@@ -228,6 +269,72 @@ export default function ChatScreen() {
 }
 
 const styles = StyleSheet.create({
+  errorRow: {
+    alignSelf: 'center',
+    maxWidth: '92%',
+    backgroundColor: Colors.errorLight,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 12,
+  },
+  errorText: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontFamily: Typography.medium,
+    color: Colors.error,
+  },
+  confirmCard: {
+    marginTop: 10,
+    borderWidth: 1,
+    borderRadius: 14,
+    padding: 12,
+    backgroundColor: Colors.surfaceElevated,
+  },
+  confirmTitle: {
+    fontSize: 14,
+    fontFamily: Typography.semibold,
+    color: Colors.textPrimary,
+    marginBottom: 6,
+  },
+  confirmDetail: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontFamily: Typography.regular,
+    color: Colors.textSecondary,
+  },
+  confirmKey: {
+    fontFamily: Typography.semibold,
+  },
+  confirmActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 12,
+  },
+  refuseBtn: {
+    flex: 1,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  refuseText: {
+    fontSize: 14,
+    fontFamily: Typography.semibold,
+    color: Colors.textPrimary,
+  },
+  approveBtn: {
+    flex: 1,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  approveText: {
+    fontSize: 14,
+    fontFamily: Typography.semibold,
+  },
   container: {
     flex: 1,
     backgroundColor: Colors.background,
