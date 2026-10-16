@@ -43,6 +43,30 @@ export const Fonts = Platform.select({
 });
 
 /**
+ * Clean typography (Inter, loaded in the root layout).
+ * Use these font families instead of fontWeight so weights render the
+ * same on iOS, Android and web.
+ */
+export const Typography = {
+  regular: 'Inter_400Regular',
+  medium: 'Inter_500Medium',
+  semibold: 'Inter_600SemiBold',
+  bold: 'Inter_700Bold',
+  extrabold: 'Inter_800ExtraBold',
+} as const;
+
+/**
+ * Corner radii for the soft, rounded look.
+ */
+export const Radius = {
+  sm: 10,
+  md: 14,
+  lg: 20,
+  xl: 28,
+  pill: 999,
+} as const;
+
+/**
  * Consistent 8-point spacing grid used for padding, margins, and gaps.
  */
 export const Spacing = {

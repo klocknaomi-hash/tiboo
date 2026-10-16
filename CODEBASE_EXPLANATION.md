@@ -106,7 +106,7 @@ muse_ai_clone/
   - `npm run web`: Launches Web browser development instance.
 
 #### [`app.json`](file:///Users/rahulsanarahulp/Documents/Projects/React%20Native/muse_ai_clone/app.json)
-- **Role:** Expo manifest setting app name (`muse_ai_clone`), slug, scheme (`museaiclone`), splash screens, icons, and router plugins.
+- **Role:** Expo manifest setting app name (`Tiboo`), slug, scheme (`tibooia`), splash screens, icons, and router plugins.
 
 #### [`tsconfig.json`](file:///Users/rahulsanarahulp/Documents/Projects/React%20Native/muse_ai_clone/tsconfig.json)
 - **Role:** TypeScript path mapping aliases (`@/*` -> `./src/*`).

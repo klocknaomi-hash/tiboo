@@ -15,6 +15,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { Colors } from '@/constants/colors';
+import { Typography } from '@/constants/theme';
 
 interface ToastContextType {
   showToast: (message: string, duration?: number) => void;
@@ -127,7 +128,7 @@ const styles = StyleSheet.create({
   toastContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1E2022',
+    backgroundColor: Colors.iconDark,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 24,
@@ -135,7 +136,7 @@ const styles = StyleSheet.create({
     gap: 8,
     ...Platform.select({
       ios: {
-        shadowColor: Colors.black,
+        shadowColor: Colors.shadow,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.2,
         shadowRadius: 10,
@@ -152,11 +153,11 @@ const styles = StyleSheet.create({
     width: 7,
     height: 7,
     borderRadius: 3.5,
-    backgroundColor: '#2563EB',
+    backgroundColor: Colors.primary,
   },
   toastText: {
     fontSize: 13.5,
-    fontWeight: '600',
+    fontFamily: Typography.semibold,
     color: Colors.white,
     letterSpacing: -0.1,
   },

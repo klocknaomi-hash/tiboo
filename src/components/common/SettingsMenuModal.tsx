@@ -28,8 +28,10 @@ import {
   Share01Icon,
   SparklesIcon,
   RefreshIcon,
+  Clock01Icon,
 } from '@hugeicons/core-free-icons';
 import { Colors } from '@/constants/colors';
+import { Typography } from '@/constants/theme';
 import { showToast } from '@/context/ToastContext';
 
 export interface SettingsMenuModalProps {
@@ -47,6 +49,8 @@ export interface SettingsMenuModalProps {
   onDeleteChat: () => void;
   /** Callback to export or share conversation transcript */
   onShareChat?: () => void;
+  /** Callback to open Chat History screen */
+  onOpenHistory?: () => void;
 }
 
 /**
@@ -60,6 +64,7 @@ export const SettingsMenuModal: React.FC<SettingsMenuModalProps> = ({
   onClearChat,
   onDeleteChat,
   onShareChat,
+  onOpenHistory,
 }) => {
   const insets = useSafeAreaInsets();
 
@@ -81,7 +86,7 @@ export const SettingsMenuModal: React.FC<SettingsMenuModalProps> = ({
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={() => {
-                  showToast('Edit Mascot & Avatar');
+                  showToast('Personnaliser l’agent');
                   onClose();
                   onEditAvatar();
                 }}
@@ -92,14 +97,14 @@ export const SettingsMenuModal: React.FC<SettingsMenuModalProps> = ({
                   color={Colors.iconDark}
                   strokeWidth={1.8}
                 />
-                <Text style={styles.itemText}>Edit Mascot & Avatar</Text>
+                <Text style={styles.itemText}>Personnaliser l’agent</Text>
               </TouchableOpacity>
 
               {/* 2. Rename Agent / Chat */}
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={() => {
-                  showToast('Rename Agent');
+                  showToast('Renommer l’agent');
                   onClose();
                   onRename();
                 }}
@@ -110,14 +115,14 @@ export const SettingsMenuModal: React.FC<SettingsMenuModalProps> = ({
                   color={Colors.iconDark}
                   strokeWidth={1.8}
                 />
-                <Text style={styles.itemText}>Rename Agent</Text>
+                <Text style={styles.itemText}>Renommer l’agent</Text>
               </TouchableOpacity>
 
               {/* 3. Export Conversation */}
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={() => {
-                  showToast('Export Chat');
+                  showToast('Exporter la discussion');
                   onClose();
                   onShareChat?.();
                 }}
@@ -128,14 +133,31 @@ export const SettingsMenuModal: React.FC<SettingsMenuModalProps> = ({
                   color={Colors.iconDark}
                   strokeWidth={1.8}
                 />
-                <Text style={styles.itemText}>Export Chat</Text>
+                <Text style={styles.itemText}>Exporter la discussion</Text>
               </TouchableOpacity>
 
-              {/* 4. Clear Messages */}
+              {/* 4. Chat History */}
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={() => {
-                  showToast('Clear Messages');
+                  onClose();
+                  onOpenHistory?.();
+                }}
+                activeOpacity={0.7}>
+                <HugeiconsIcon
+                  icon={Clock01Icon}
+                  size={18}
+                  color={Colors.iconDark}
+                  strokeWidth={1.8}
+                />
+                <Text style={styles.itemText}>Historique des chats</Text>
+              </TouchableOpacity>
+
+              {/* 5. Clear Messages */}
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => {
+                  showToast('Messages effacés');
                   onClose();
                   onClearChat();
                 }}
@@ -146,16 +168,16 @@ export const SettingsMenuModal: React.FC<SettingsMenuModalProps> = ({
                   color={Colors.iconDark}
                   strokeWidth={1.8}
                 />
-                <Text style={styles.itemText}>Clear Messages</Text>
+                <Text style={styles.itemText}>Effacer les messages</Text>
               </TouchableOpacity>
 
               <View style={styles.divider} />
 
-              {/* 5. Delete Chat (Destructive) */}
+              {/* 6. Delete Chat (Destructive) */}
               <TouchableOpacity
                 style={[styles.menuItem, styles.dangerItem]}
                 onPress={() => {
-                  showToast('Delete Chat');
+                  showToast('Discussion supprimée');
                   onClose();
                   onDeleteChat();
                 }}
@@ -166,7 +188,7 @@ export const SettingsMenuModal: React.FC<SettingsMenuModalProps> = ({
                   color={Colors.error}
                   strokeWidth={1.8}
                 />
-                <Text style={[styles.itemText, styles.dangerText]}>Delete Chat</Text>
+                <Text style={[styles.itemText, styles.dangerText]}>Supprimer la discussion</Text>
               </TouchableOpacity>
             </View>
           </TouchableWithoutFeedback>
@@ -179,7 +201,7 @@ export const SettingsMenuModal: React.FC<SettingsMenuModalProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.08)',
+    backgroundColor: Colors.overlay,
     justifyContent: 'flex-start',
     alignItems: 'flex-end',
     paddingTop: Platform.OS === 'ios' ? 64 : 56,
@@ -187,7 +209,7 @@ const styles = StyleSheet.create({
   },
   dropdownCard: {
     width: 200,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surfaceElevated,
     borderRadius: 14,
     paddingVertical: 6,
     paddingHorizontal: 5,
@@ -195,7 +217,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     ...Platform.select({
       ios: {
-        shadowColor: Colors.black,
+        shadowColor: Colors.shadow,
         shadowOffset: { width: 0, height: 6 },
         shadowOpacity: 0.12,
         shadowRadius: 16,
@@ -204,7 +226,7 @@ const styles = StyleSheet.create({
         elevation: 8,
       },
       web: {
-        boxShadow: '0 8px 24px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(15, 23, 42, 0.04)',
+        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04)',
       },
     }),
   },
@@ -221,13 +243,13 @@ const styles = StyleSheet.create({
   },
   itemText: {
     fontSize: 13.5,
-    fontWeight: '500',
+    fontFamily: Typography.medium,
     color: Colors.textPrimary,
     letterSpacing: -0.2,
   },
   dangerText: {
     color: Colors.error,
-    fontWeight: '500',
+    fontFamily: Typography.medium,
   },
   divider: {
     height: 1,

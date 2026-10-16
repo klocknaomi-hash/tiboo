@@ -1,6 +1,23 @@
 # 🤖 Muse AI Clone
 
-A pixel-perfect, universal React Native application for **Muse AI** and companion **Cooper** — an autonomous AI agent for recurring tasks, workflows, and goals.
+> ## 🇫🇷 Version personnalisable
+>
+> L'agent n'est plus figé sur « Cooper » : chaque utilisateur peut créer **son propre agent**.
+>
+> **Dans l'appli** : touchez l'avatar en haut de l'écran (ou ⋯ → *Rename Agent*) pour changer :
+> - le **nom** de l'agent (affiché dans l'en-tête, le menu latéral, le chat et ses réponses) ;
+> - son **rôle** (ex. « Coach sportif », « Prof d'anglais ») ;
+> - son **avatar** : mascotte 3D, initiales, emoji (🤖 🦊 🐱 🦉 …) ou **photo de la galerie** ;
+> - son **message d'accueil** ;
+> - sa **couleur** (contour de l'avatar, bouton d'envoi, onglet actif).
+>
+> Les choix sont **sauvegardés sur le téléphone** (AsyncStorage) et conservés au redémarrage. « Reset to default » revient aux valeurs d'origine.
+>
+> **Pour changer les valeurs par défaut** (nom de marque, agent de départ, couleurs et emojis proposés) : un seul fichier, [`src/constants/agentConfig.ts`](./src/constants/agentConfig.ts).
+>
+> **Lancer sur téléphone** : `npm install` puis `npx expo start`, et scannez le QR code avec Expo Go (iOS / Android).
+
+A pixel-perfect, universal React Native application for **Muse AI** and a fully customizable AI companion — an autonomous AI agent for recurring tasks, workflows, and goals.
 
 Built with **Expo (SDK 57)**, **React Native 0.86**, **Expo Router**, and **TypeScript**.
 
@@ -9,11 +26,11 @@ Built with **Expo (SDK 57)**, **React Native 0.86**, **Expo Router**, and **Type
 ## ✨ Features
 
 - **Google Sign-In Authentication:** Beautiful onboarding screen with official 4-color SVG Google sign-in button.
-- **Header & 3D Character Mascot:** Sticky top header featuring Cooper's 3D portrait, floating name pill, 2-line menu with unread indicator dot, and 3-dots action sheet.
+- **Header & 3D Character Mascot:** Sticky top header featuring the agent's avatar (3D mascot, initials, emoji or photo), floating name pill, 2-line menu with unread indicator dot, and 3-dots action sheet.
 - **Real-Time Interactive Chat:** Peach user bubbles, soft gray agent bubbles, date dividers, typing indicator animations, and intelligent simulated response loop.
 - **Stadium Floating Dock:** Bottom capsule dock switching between **Chat**, **Feed**, **Ideas**, **Tasks**, and **Settings**.
 - **Slide-in Session Drawer:** Main chat shortcut, searchable side chat history with unread indicators, and bottom compose toolbar.
-- **Agent Personalization Modal:** Live preview editor for agent name, role subtitle, 5 emblem icons, and 6 aura theme colors.
+- **Agent Personalization Modal:** Live preview editor for agent name, role, greeting, avatar (mascot, initials, emoji or gallery photo) and theme color — saved on device.
 - **Autonomous Tasks & Goals:** Recurring checks manager with active/paused toggles and instantaneous simulated manual runs.
 - **Settings & Connectors:** Plan usage progress tracker, 7 tool integrations (Google, Notion, GitHub, Slack, Linear, Figma, X), monthly/yearly Pro pricing modal, and theme preferences.
 

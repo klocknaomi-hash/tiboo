@@ -3,7 +3,7 @@
  *
  * Sticky top navigation bar featuring:
  * - Left: Circular 2-line drawer menu trigger with active notification blue dot
- * - Center: Cooper 3D mascot avatar with interactive floating name pill
+ * - Center: Agent avatar with interactive floating name pill (customizable)
  * - Right: Circular 3-dots action sheet menu button
  */
 
@@ -12,15 +12,11 @@ import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { MenuTwoLineIcon, MoreHorizontalIcon } from '@hugeicons/core-free-icons';
 import { Colors } from '@/constants/colors';
+import { Typography } from '@/constants/theme';
 import MascotAvatar from './MascotAvatar';
+import { useAgent } from '@/context/AgentContext';
 
 export interface AppHeaderProps {
-  /** Active agent display name (defaults to 'Cooper') */
-  agentName?: string;
-  /** Mascot emblem icon key or 'cooper' */
-  mascotIcon?: string;
-  /** Accent aura color */
-  mascotColor?: string;
   /** Callback to open the left sliding session drawer */
   onOpenSidebar: () => void;
   /** Callback to trigger the right 3-dots actions menu */
@@ -33,13 +29,13 @@ export interface AppHeaderProps {
  * Global Top Header with 3D Mascot and Action Triggers
  */
 export const AppHeader: React.FC<AppHeaderProps> = ({
-  agentName = 'Cooper',
-  mascotIcon = 'cooper',
-  mascotColor = Colors.primary,
   onOpenSidebar,
   onOpenSettings,
   onMascotPress,
 }) => {
+  const { agent } = useAgent();
+  const agentName = agent.name;
+
   return (
     <View style={styles.headerContainer}>
 
@@ -49,7 +45,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           style={styles.circleBtn}
           onPress={onOpenSidebar}
           activeOpacity={0.7}
-          accessibilityLabel="Open sidebar and drawer"
+          accessibilityLabel="Ouvrir le menu latéral"
           accessibilityRole="button">
           <HugeiconsIcon
             icon={MenuTwoLineIcon}
@@ -57,25 +53,26 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             color={Colors.iconDark}
             strokeWidth={2.2}
           />
-          {/* Blue status / notification indicator dot */}
-          <View style={styles.blueDot} />
+          {/* Status / notification indicator dot using active theme color */}
+          <View style={[styles.blueDot, { backgroundColor: agent.color }]} />
         </TouchableOpacity>
       </View>
 
-      {/* Center: 3D Mascot Character with Floating 'Cooper' Name Capsule Below */}
+      {/* Center: Agent Avatar with Floating Name Capsule Below */}
       <TouchableOpacity
         style={styles.centerCol}
         onPress={onMascotPress || onOpenSettings}
         activeOpacity={0.85}
-        accessibilityLabel={`${agentName} profile`}
+        accessibilityLabel={`Profil de ${agentName}`}
         accessibilityRole="button">
-        <View style={styles.mascotContainer}>
+        <View style={[styles.mascotContainer, { borderColor: agent.color }]}>
           <MascotAvatar size={54} />
         </View>
 
         {/* Floating Capsule Name Pill */}
         <View style={styles.nameCapsule}>
-          <Text style={styles.agentNameText}>{agentName}</Text>
+          <View style={[styles.nameDot, { backgroundColor: agent.color }]} />
+          <Text style={styles.agentNameText} numberOfLines={1}>{agentName}</Text>
         </View>
       </TouchableOpacity>
 
@@ -85,7 +82,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           style={styles.circleBtn}
           onPress={onOpenSettings}
           activeOpacity={0.7}
-          accessibilityLabel="Agent settings and options"
+          accessibilityLabel="Options et paramètres de l’agent"
           accessibilityRole="button">
           <HugeiconsIcon
             icon={MoreHorizontalIcon}
@@ -108,7 +105,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 6,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.background,
     zIndex: 10,
   },
   sideCol: {
@@ -123,13 +120,13 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surfaceElevated,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
     ...Platform.select({
       ios: {
-        shadowColor: Colors.black,
+        shadowColor: Colors.shadow,
         shadowOffset: { width: 0, height: 3 },
         shadowOpacity: 0.08,
         shadowRadius: 8,
@@ -149,7 +146,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#0066FF',
+    backgroundColor: Colors.primary,
     borderWidth: 1.5,
     borderColor: Colors.white,
   },
@@ -160,16 +157,28 @@ const styles = StyleSheet.create({
   mascotContainer: {
     alignItems: 'center',
     justifyContent: 'center',
+    padding: 2,
+    borderRadius: 30,
+    borderWidth: 2,
+  },
+  nameDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    marginRight: 6,
   },
   nameCapsule: {
-    backgroundColor: Colors.white,
+    flexDirection: 'row',
+    alignItems: 'center',
+    maxWidth: 180,
+    backgroundColor: Colors.surfaceElevated,
     paddingHorizontal: 16,
     paddingVertical: 5,
     borderRadius: 20,
     marginTop: 4,
     ...Platform.select({
       ios: {
-        shadowColor: Colors.black,
+        shadowColor: Colors.shadow,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.07,
         shadowRadius: 6,
@@ -184,7 +193,7 @@ const styles = StyleSheet.create({
   },
   agentNameText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: Typography.bold,
     color: Colors.iconDark,
     letterSpacing: -0.2,
   },

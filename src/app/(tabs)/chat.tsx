@@ -28,12 +28,23 @@ import {
   SentIcon,
 } from '@hugeicons/core-free-icons';
 import { Colors } from '@/constants/colors';
+import { Typography } from '@/constants/theme';
 import { INITIAL_CHAT_MESSAGES } from '@/constants/dummyData';
 import { ChatMessage } from '@/types';
 import { showToast } from '@/context/ToastContext';
+import { useAgent } from '@/context/AgentContext';
+import { useChat } from '@/context/ChatContext';
+import { MascotAvatar } from '@/components/common';
 
 export default function ChatScreen() {
-  const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_CHAT_MESSAGES);
+  const { agent } = useAgent();
+  const {
+    messages,
+    isTyping,
+    sendMessage,
+    activeThread,
+  } = useChat();
+
   const [inputText, setInputText] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
   const insets = useSafeAreaInsets();
@@ -43,7 +54,7 @@ export default function ChatScreen() {
 
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
-  }, [messages]);
+  }, [messages, isTyping]);
 
   // Scroll to bottom when keyboard appears
   useEffect(() => {
@@ -56,21 +67,14 @@ export default function ChatScreen() {
     return () => sub.remove();
   }, []);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const text = inputText.trim();
     if (!text) return;
-
-    const userMsg: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      sender: 'user',
-      text,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-
-    setMessages((prev) => [...prev, userMsg]);
     setInputText('');
-    showToast('Message sent');
+    await sendMessage(text);
   };
+
+
 
   return (
     <KeyboardAvoidingView
@@ -88,41 +92,84 @@ export default function ChatScreen() {
           showsVerticalScrollIndicator={false}>
           <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
             <View style={styles.scrollInner}>
-              {/* Centered Date Badge */}
+              {/* Centered Date Badge & Thread Indicator */}
               <View style={styles.dateBadgeContainer}>
                 <View style={styles.dateBadge}>
-                  <Text style={styles.dateBadgeText}>Today</Text>
+                  <Text style={styles.dateBadgeText}>Aujourd’hui</Text>
                 </View>
               </View>
+
+              {activeThread && !activeThread.isMainChat && (
+                <View style={styles.threadBadgeContainer}>
+                  <View style={styles.threadBadge}>
+                    <Text style={styles.threadBadgeText} numberOfLines={1}>
+                      {activeThread.title}
+                    </Text>
+                  </View>
+                </View>
+              )}
+
+              {/* Empty state greeting */}
+              {messages.length === 0 && (
+                <View style={[styles.messageRow, styles.agentMessageRow]}>
+                  <MascotAvatar size={28} style={styles.messageAvatar} />
+                  <View style={[styles.bubble, styles.agentBubble]}>
+                    <Text style={[styles.bubbleText, styles.agentBubbleText]}>
+                      {agent.greeting}
+                    </Text>
+                  </View>
+                </View>
+              )}
 
               {/* Messages */}
               {messages.map((msg) => {
                 const isUser = msg.sender === 'user';
+                // The seeded agent message shows the agent's customizable greeting
+                const text = msg.id === 'msg-2' ? agent.greeting : msg.text;
                 return (
                   <TouchableOpacity
                     key={msg.id}
                     activeOpacity={0.8}
-                    onPress={() => showToast(msg.text)}
+                    onPress={() => showToast(text)}
                     style={[
                       styles.messageRow,
                       isUser ? styles.userMessageRow : styles.agentMessageRow,
                     ]}>
+                    {!isUser && <MascotAvatar size={28} style={styles.messageAvatar} />}
                     <View
                       style={[
                         styles.bubble,
-                        isUser ? styles.userBubble : styles.agentBubble,
+                        isUser
+                          ? [styles.userBubble, { backgroundColor: agent.color }]
+                          : styles.agentBubble,
                       ]}>
                       <Text
                         style={[
                           styles.bubbleText,
                           isUser ? styles.userBubbleText : styles.agentBubbleText,
                         ]}>
-                        {msg.text}
+                        {text}
                       </Text>
                     </View>
                   </TouchableOpacity>
                 );
               })}
+
+              {isTyping && (
+                <View style={[styles.messageRow, styles.agentMessageRow]}>
+                  <MascotAvatar size={28} style={styles.messageAvatar} />
+                  <View style={[styles.bubble, styles.agentBubble]}>
+                    <Text
+                      style={[
+                        styles.bubbleText,
+                        styles.agentBubbleText,
+                        { fontStyle: 'italic', color: Colors.textMuted },
+                      ]}>
+                      {agent.name} consulte vos outils Composio...
+                    </Text>
+                  </View>
+                </View>
+              )}
             </View>
           </TouchableWithoutFeedback>
         </ScrollView>
@@ -133,8 +180,9 @@ export default function ChatScreen() {
             {/* Plus Attach Button */}
             <TouchableOpacity
               style={styles.circleBtn}
-              onPress={() => showToast('Attach file')}
-              activeOpacity={0.7}>
+              onPress={() => showToast('Joindre un fichier')}
+              activeOpacity={0.7}
+              accessibilityLabel="Joindre un fichier">
               <HugeiconsIcon icon={Add01Icon} size={20} color={Colors.iconDark} strokeWidth={2.2} />
             </TouchableOpacity>
 
@@ -148,7 +196,7 @@ export default function ChatScreen() {
                   scrollViewRef.current?.scrollToEnd({ animated: true });
                 }, 100);
               }}
-              placeholder="Message in Start a health goal"
+              placeholder={`Envoyer un message à ${agent.name}…`}
               placeholderTextColor={Colors.iconMuted}
               returnKeyType="send"
               onSubmitEditing={handleSend}
@@ -157,16 +205,18 @@ export default function ChatScreen() {
             {/* Right Action: Voice or Send */}
             {inputText.trim().length > 0 ? (
               <TouchableOpacity
-                style={[styles.circleBtn, styles.sendBtn]}
+                style={[styles.circleBtn, { backgroundColor: agent.color }]}
                 onPress={handleSend}
-                activeOpacity={0.8}>
+                activeOpacity={0.8}
+                accessibilityLabel="Envoyer">
                 <HugeiconsIcon icon={SentIcon} size={18} color={Colors.white} strokeWidth={2.4} />
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
                 style={styles.circleBtn}
-                onPress={() => showToast('Voice input')}
-                activeOpacity={0.7}>
+                onPress={() => showToast('Saisie vocale')}
+                activeOpacity={0.7}
+                accessibilityLabel="Saisie vocale">
                 <HugeiconsIcon icon={Mic01Icon} size={20} color={Colors.iconDark} strokeWidth={2} />
               </TouchableOpacity>
             )}
@@ -180,7 +230,7 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.background,
   },
   content: {
     flex: 1,
@@ -203,15 +253,33 @@ const styles = StyleSheet.create({
     marginVertical: 14,
   },
   dateBadge: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.surface,
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 12,
   },
   dateBadgeText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#888',
+    fontFamily: Typography.semibold,
+    color: Colors.textMuted,
+  },
+  threadBadgeContainer: {
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  threadBadge: {
+    backgroundColor: Colors.surfaceElevated,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+    maxWidth: '85%',
+  },
+  threadBadgeText: {
+    fontSize: 11.5,
+    fontFamily: Typography.medium,
+    color: Colors.textSecondary,
   },
   messageRow: {
     marginBottom: 12,
@@ -223,49 +291,56 @@ const styles = StyleSheet.create({
   },
   agentMessageRow: {
     justifyContent: 'flex-start',
+    alignItems: 'flex-end',
+  },
+  messageAvatar: {
+    marginRight: 8,
   },
   bubble: {
     maxWidth: '82%',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderRadius: 20,
+    borderRadius: 24,
   },
   userBubble: {
     backgroundColor: Colors.chatBubbleUser,
-    borderBottomRightRadius: 6,
+    borderBottomRightRadius: 8,
   },
   agentBubble: {
     backgroundColor: Colors.chatBubbleAi,
-    borderBottomLeftRadius: 6,
+    borderWidth: 1,
+    borderColor: Colors.chatBubbleAiBorder,
+    borderBottomLeftRadius: 8,
   },
   bubbleText: {
     fontSize: 15.5,
+    fontFamily: Typography.regular,
     lineHeight: 22,
     letterSpacing: -0.1,
   },
   userBubbleText: {
-    color: '#3B2318',
-    fontWeight: '500',
+    color: Colors.userBubbleText,
+    fontFamily: Typography.medium,
   },
   agentBubbleText: {
     color: Colors.iconDark,
-    fontWeight: '400',
+    fontFamily: Typography.regular,
   },
   inputWrapper: {
     paddingHorizontal: 16,
     paddingBottom: Platform.OS === 'ios' ? 12 : 10,
     paddingTop: 6,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.background,
   },
   inputBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.surface,
     borderRadius: 26,
     paddingHorizontal: 8,
     paddingVertical: 6,
     borderWidth: 1,
-    borderColor: '#ECEEF0',
+    borderColor: Colors.border,
   },
   circleBtn: {
     width: 38,
@@ -274,12 +349,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  sendBtn: {
-    backgroundColor: Colors.iconDark,
-  },
   textInput: {
     flex: 1,
     fontSize: 15,
+    fontFamily: Typography.regular,
     color: Colors.iconDark,
     paddingHorizontal: 10,
     paddingVertical: Platform.OS === 'ios' ? 8 : 4,
