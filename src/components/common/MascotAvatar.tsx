@@ -2,13 +2,19 @@
  * MascotAvatar Component
  *
  * Circular agent avatar. Renders the active agent's avatar choice:
- * bundled 3D mascot, emoji, name initials, or a gallery photo.
+ * a ready-made persona portrait, the Tiboo mascot (vector logo),
+ * name initials, an emoji (legacy profiles) or a gallery photo.
  */
 
 import React from 'react';
-import { Image, View, Text, StyleSheet, ImageStyle, StyleProp } from 'react-native';
+import { View, Text, StyleSheet, ImageStyle, StyleProp } from 'react-native';
+import { Image } from 'expo-image';
 import { Colors } from '@/constants/colors';
+import { Typography } from '@/constants/theme';
+import { AGENT_PERSONAS } from '@/constants/agentConfig';
 import { useAgent } from '@/context/AgentContext';
+import TibooLogo from './TibooLogo';
+import { themeFromAccent } from '@/hooks/useThemeColors';
 import { AgentAvatar } from '@/types';
 
 export interface MascotAvatarProps {
@@ -46,19 +52,41 @@ export const MascotAvatar: React.FC<MascotAvatarProps> = ({
 
   const circle = { width: size, height: size, borderRadius: size / 2 };
 
-  if (activeAvatar.type === 'photo' || activeAvatar.type === 'mascot') {
+  if (activeAvatar.type === 'mascot') {
+    return (
+      <View style={[styles.centered, circle, styles.clip, style as any]}>
+        <TibooLogo variant="tile" size={size} />
+      </View>
+    );
+  }
+
+  const persona =
+    activeAvatar.type === 'persona'
+      ? AGENT_PERSONAS.find((p) => p.id === activeAvatar.id) ?? AGENT_PERSONAS[0]
+      : undefined;
+
+  if (persona) {
     return (
       <Image
-        source={
-          activeAvatar.type === 'photo'
-            ? { uri: activeAvatar.uri }
-            : require('../../../assets/images/cooper_mascot.jpg')
-        }
-        style={[styles.avatar, circle, style]}
-        resizeMode="cover"
+        source={persona.image}
+        style={[styles.avatar, { backgroundColor: themeFromAccent(activeColor).accentSubtle }, circle, styles.clip, style as any]}
+        contentFit="cover"
+        transition={150}
       />
     );
   }
+
+  if (activeAvatar.type === 'photo') {
+    return (
+      <Image
+        source={{ uri: activeAvatar.uri }}
+        style={[styles.avatar, circle, styles.clip, style as any]}
+        contentFit="cover"
+        transition={150}
+      />
+    );
+  }
+
 
   const isEmoji = activeAvatar.type === 'emoji';
   return (
@@ -83,7 +111,10 @@ export const MascotAvatar: React.FC<MascotAvatarProps> = ({
 
 const styles = StyleSheet.create({
   avatar: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.primarySubtle,
+  },
+  clip: {
+    overflow: 'hidden',
   },
   centered: {
     alignItems: 'center',
@@ -93,7 +124,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   initials: {
-    fontWeight: '800',
+    fontFamily: Typography.extrabold,
     color: Colors.white,
     letterSpacing: -0.5,
   },

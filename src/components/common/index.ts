@@ -7,4 +7,7 @@ export { AppHeader, type AppHeaderProps } from './AppHeader';
 export { SidebarDrawer, type SidebarDrawerProps } from './SidebarDrawer';
 export { SettingsMenuModal, type SettingsMenuModalProps } from './SettingsMenuModal';
 export { EditAgentModal, type EditAgentModalProps } from './EditAgentModal';
+export { ConnectorsModal, type ConnectorsModalProps } from './ConnectorsModal';
+
+export { TibooLogo, type TibooLogoProps } from './TibooLogo';
 

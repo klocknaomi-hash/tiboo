@@ -14,7 +14,6 @@ import {
   SideChatItem,
   IdeaItem,
   TaskGoalItem,
-  ConnectorItem,
   PlanData,
 } from '@/types';
 
@@ -28,14 +27,14 @@ export const INITIAL_CHAT_MESSAGES: ChatMessage[] = [
   {
     id: 'msg-1',
     sender: 'user',
-    text: 'I want to start a health goal',
-    timestamp: '3:35 PM',
+    text: 'Je souhaite démarrer un objectif de santé et de forme',
+    timestamp: '15:35',
   },
   {
     id: 'msg-2',
     sender: 'agent',
-    text: "I'd love to help with that. In your own words, what would this health goal be about — what's the change you'd want to see?",
-    timestamp: '3:35 PM',
+    text: "Avec grand plaisir ! En quelques mots, quel est ton objectif principal et quel changement concret souhaites-tu obtenir ?",
+    timestamp: '15:35',
   },
 ];
 
@@ -45,27 +44,27 @@ export const INITIAL_CHAT_MESSAGES: ChatMessage[] = [
 export const SIDE_CHATS: SideChatItem[] = [
   {
     id: 'side-1',
-    title: 'Creative story after college fight',
+    title: 'Synthèse du projet mobile',
     hasUnreadDot: false,
   },
   {
     id: 'side-2',
-    title: 'Greet and start conversation',
+    title: 'Revue des priorités de la semaine',
     hasUnreadDot: false,
   },
   {
     id: 'side-3',
-    title: 'Start a health goal',
+    title: 'Objectif forme et bien-être',
     hasUnreadDot: false,
   },
   {
     id: 'side-4',
-    title: 'Start a productivity goal',
+    title: 'Automatisation des emails Gmail',
     hasUnreadDot: true,
   },
   {
     id: 'side-5',
-    title: 'Start an interests goal',
+    title: 'Veille technologique & IA',
     hasUnreadDot: true,
   },
 ];
@@ -77,30 +76,30 @@ export const IDEA_ITEMS: IdeaItem[] = [
   {
     id: 'idea-1',
     icon: '🏆',
-    title: 'I can build your AI Builder Cup entry package',
-    description: "I can research the AI Builder Cup JAPAC's current rules and judging criteria, then build your submission package around a solo-buildable agentic app: an entry draft, demo script, and deadline checklist. It is listed with...",
-    prompt: 'Help me build my AI Builder Cup entry package. Research the rules and build a submission draft, demo script, and checklist.',
+    title: 'Préparer un dossier de candidature complet',
+    description: "Je peux analyser les critères d'évaluation, rédiger une ébauche de présentation, le script de démonstration et le calendrier des livrables pour ton projet.",
+    prompt: "Aide-moi à préparer un dossier complet de présentation pour mon projet. Analyse les étapes clés et propose un plan d'action structuré.",
   },
   {
     id: 'idea-2',
     icon: '🗂️',
-    title: 'I can keep your money-making apps leaderboard',
-    description: "I can turn the money-making apps from your X timeline scan into a living leaderboard, with each app's name, link, and earnings figure tagged claimed or verified. New apps you spot get added to the same list, so you never hav...",
-    prompt: 'Create a living leaderboard of top money-making apps from my X timeline scan, tracking names, links, and verified earnings.',
+    title: 'Créer un tableau comparatif automatisé',
+    description: "Je peux scanner tes flux d'informations et créer un tableau vivant répertoriant les outils les plus performants avec liens, métriques et statut vérifié.",
+    prompt: "Génère un tableau comparatif structuré des meilleurs outils d'IA pour mon projet avec avantages, inconvénients et cas d'usage.",
   },
   {
     id: 'idea-3',
     icon: '📹',
-    title: 'Turn your next app build into a Shorts series',
-    description: "Share your next app build, and I can map it onto YouTube's 2026 Shorts Series, AI Shorts editing, and real-time dubbing: episode breakdowns, per-episode hooks, and shoot-ready scripts. You stop figuring out how to s...",
-    prompt: 'Turn my app build into a YouTube Shorts series. Break it down into episodes with hooks and shoot-ready scripts.',
+    title: 'Transformer un projet en série de tutoriels courts',
+    description: "Partage ton idée et je structure une série de capsules vidéo : plan par épisode, accroches percutantes et scripts prêts à enregistrer.",
+    prompt: "Structure une série de capsules courtes et percutantes pour présenter les fonctionnalités clés de Tiboo.",
   },
   {
     id: 'idea-4',
     icon: '🚀',
-    title: 'I can build your launch post and assets',
-    description: 'I can track the top Product Hunt and Hacker News launch sources you pick and draft launch copy, screenshot mockups, and community responses.',
-    prompt: 'Draft my product launch copy, headline variations, and Product Hunt announcement strategy.',
+    title: 'Rédiger une annonce de lancement et ses visuels',
+    description: "Je prépare tes textes de communication, tes accroches pour les réseaux sociaux et la stratégie de diffusion pour maximiser l'impact de ton projet.",
+    prompt: "Rédige un texte percutant pour le lancement de mon application avec des variations de titres et un appel à l'action clair.",
   },
 ];
 
@@ -110,22 +109,22 @@ export const IDEA_ITEMS: IdeaItem[] = [
 export const TASK_GOALS: TaskGoalItem[] = [
   {
     id: 'task-1',
-    title: 'Morning Health & Workout Check-in',
-    schedule: 'Every day @ 8:00 AM',
+    title: 'Bilan santé et entraînement du matin',
+    schedule: 'Tous les jours à 08:00',
     status: 'active',
     runsCount: 28,
   },
   {
     id: 'task-2',
-    title: 'Evening Reflection & Habit Log',
-    schedule: 'Every day @ 9:00 PM',
+    title: 'Rétrospective et suivi des habitudes du soir',
+    schedule: 'Tous les jours à 21:00',
     status: 'active',
     runsCount: 34,
   },
   {
     id: 'task-3',
-    title: 'Weekly Focus Sprint Review',
-    schedule: 'Every Sunday @ 6:00 PM',
+    title: 'Revue hebdomadaire des priorités et sprints',
+    schedule: 'Tous les dimanches à 18:00',
     status: 'active',
     runsCount: 8,
   },
@@ -135,76 +134,11 @@ export const TASK_GOALS: TaskGoalItem[] = [
  * Account usage stats and quota reset schedule displayed on Settings tab.
  */
 export const SETTINGS_PLAN_DATA: PlanData = {
-  planName: 'Free plan',
+  planName: 'Forfait Gratuit',
   percentUsed: 11,
-  resetText: 'Weekly limit resets on Oct 2',
+  resetText: 'Réinitialisation de la limite hebdomadaire le 2 oct.',
   creditsUsed: 110,
   creditsTotal: 1000,
   remainingCredits: 890,
 };
 
-/**
- * Pre-configured third-party tools with connection state in Settings.
- */
-export const SETTINGS_CONNECTORS: ConnectorItem[] = [
-  {
-    id: 'conn-1',
-    name: 'Google Workspace',
-    description: 'Gmail, Calendar events & Google Drive sync',
-    iconBg: '#4285F4',
-    connected: true,
-    category: 'Productivity',
-    accountEmail: 'rahul.s@gmail.com',
-  },
-  {
-    id: 'conn-2',
-    name: 'Notion',
-    description: 'Automate databases, docs, and habit trackers',
-    iconBg: '#000000',
-    connected: true,
-    category: 'Workspace',
-    accountEmail: 'rahul.notion.so',
-  },
-  {
-    id: 'conn-3',
-    name: 'GitHub',
-    description: 'Pull request reviews, issue triage & commits',
-    iconBg: '#24292E',
-    connected: true,
-    category: 'Developer',
-    accountEmail: 'github.com/rahulsana',
-  },
-  {
-    id: 'conn-4',
-    name: 'Slack',
-    description: 'Channel agent summary & urgent notifications',
-    iconBg: '#4A154B',
-    connected: true,
-    category: 'Messaging',
-    accountEmail: 'Team Workspace',
-  },
-  {
-    id: 'conn-5',
-    name: 'Linear',
-    description: 'Track issues, sprint cycles and product roadmap',
-    iconBg: '#5E6AD2',
-    connected: false,
-    category: 'Developer',
-  },
-  {
-    id: 'conn-6',
-    name: 'Figma',
-    description: 'Inspect design tokens, frame comments & assets',
-    iconBg: '#F24E1E',
-    connected: false,
-    category: 'Design',
-  },
-  {
-    id: 'conn-7',
-    name: 'X (Twitter)',
-    description: 'Scan timelines, trends, and post drafts',
-    iconBg: '#1DA1F2',
-    connected: false,
-    category: 'Social',
-  },
-];

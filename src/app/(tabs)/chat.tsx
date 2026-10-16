@@ -28,15 +28,28 @@ import {
   SentIcon,
 } from '@hugeicons/core-free-icons';
 import { Colors } from '@/constants/colors';
+import { Typography } from '@/constants/theme';
 import { INITIAL_CHAT_MESSAGES } from '@/constants/dummyData';
 import { ChatMessage } from '@/types';
 import { showToast } from '@/context/ToastContext';
 import { useAgent } from '@/context/AgentContext';
+import { useChat } from '@/context/ChatContext';
 import { MascotAvatar } from '@/components/common';
+import { useThemeColors } from '@/hooks/useThemeColors';
+import { formatGreeting } from '@/constants/agentConfig';
 
 export default function ChatScreen() {
   const { agent } = useAgent();
-  const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_CHAT_MESSAGES);
+  const theme = useThemeColors();
+  const greeting = formatGreeting(agent.greeting, agent.name);
+  const {
+    messages,
+    isTyping,
+    sendMessage,
+    respondToConfirmation,
+    activeThread,
+  } = useChat();
+
   const [inputText, setInputText] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
   const insets = useSafeAreaInsets();
@@ -46,7 +59,7 @@ export default function ChatScreen() {
 
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
-  }, [messages]);
+  }, [messages, isTyping]);
 
   // Scroll to bottom when keyboard appears
   useEffect(() => {
@@ -59,33 +72,14 @@ export default function ChatScreen() {
     return () => sub.remove();
   }, []);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const text = inputText.trim();
     if (!text) return;
-
-    const userMsg: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      sender: 'user',
-      text,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-
-    setMessages((prev) => [...prev, userMsg]);
     setInputText('');
-
-    // Demo reply so the agent's personality shows up in the conversation
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `msg-${Date.now()}`,
-          sender: 'agent',
-          text: `Got it! I'm ${agent.name}${agent.subtitle ? `, your ${agent.subtitle.toLowerCase()}` : ''}. Let's work on this together — tell me a bit more.`,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        },
-      ]);
-    }, 700);
+    await sendMessage(text);
   };
+
+
 
   return (
     <KeyboardAvoidingView
@@ -103,23 +97,52 @@ export default function ChatScreen() {
           showsVerticalScrollIndicator={false}>
           <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
             <View style={styles.scrollInner}>
-              {/* Centered Date Badge */}
+              {/* Centered Date Badge & Thread Indicator */}
               <View style={styles.dateBadgeContainer}>
                 <View style={styles.dateBadge}>
-                  <Text style={styles.dateBadgeText}>Today</Text>
+                  <Text style={styles.dateBadgeText}>Aujourd’hui</Text>
                 </View>
               </View>
+
+              {activeThread && !activeThread.isMainChat && (
+                <View style={styles.threadBadgeContainer}>
+                  <View style={styles.threadBadge}>
+                    <Text style={styles.threadBadgeText} numberOfLines={1}>
+                      {activeThread.title}
+                    </Text>
+                  </View>
+                </View>
+              )}
+
+              {/* Empty state greeting */}
+              {messages.length === 0 && (
+                <View style={[styles.messageRow, styles.agentMessageRow]}>
+                  <MascotAvatar size={28} style={styles.messageAvatar} />
+                  <View style={[styles.bubble, styles.agentBubble]}>
+                    <Text style={[styles.bubbleText, styles.agentBubbleText]}>
+                      {greeting}
+                    </Text>
+                  </View>
+                </View>
+              )}
 
               {/* Messages */}
               {messages.map((msg) => {
                 const isUser = msg.sender === 'user';
-                // The seeded agent message shows the agent's customizable greeting
-                const text = msg.id === 'msg-2' ? agent.greeting : msg.text;
+                const text = msg.id === 'msg-2' ? greeting : msg.text;
+                const pending = msg.pendingConfirmation;
+
+                if (msg.isError) {
+                  return (
+                    <View key={msg.id} style={styles.errorRow} accessibilityRole="alert">
+                      <Text style={styles.errorText}>⚠️ {text}</Text>
+                    </View>
+                  );
+                }
+
                 return (
-                  <TouchableOpacity
+                  <View
                     key={msg.id}
-                    activeOpacity={0.8}
-                    onPress={() => showToast(text)}
                     style={[
                       styles.messageRow,
                       isUser ? styles.userMessageRow : styles.agentMessageRow,
@@ -128,19 +151,66 @@ export default function ChatScreen() {
                     <View
                       style={[
                         styles.bubble,
-                        isUser ? styles.userBubble : styles.agentBubble,
+                        isUser
+                          ? [styles.userBubble, { backgroundColor: theme.accent }]
+                          : styles.agentBubble,
                       ]}>
                       <Text
+                        selectable
                         style={[
                           styles.bubbleText,
-                          isUser ? styles.userBubbleText : styles.agentBubbleText,
+                          isUser ? [styles.userBubbleText, { color: theme.onAccent }] : styles.agentBubbleText,
                         ]}>
                         {text}
                       </Text>
+
+                      {pending && (
+                        <View style={[styles.confirmCard, { borderColor: theme.accentBorder }]}>
+                          <Text style={styles.confirmTitle}>{pending.description}</Text>
+                          {Object.entries(pending.arguments)
+                            .filter(([, v]) => v !== null && v !== '' && typeof v !== 'object')
+                            .map(([k, v]) => (
+                              <Text key={k} style={styles.confirmDetail} numberOfLines={4}>
+                                <Text style={styles.confirmKey}>{k} : </Text>
+                                {String(v)}
+                              </Text>
+                            ))}
+                          <View style={styles.confirmActions}>
+                            <TouchableOpacity
+                              style={styles.refuseBtn}
+                              onPress={() => respondToConfirmation(msg.id, false)}
+                              accessibilityRole="button">
+                              <Text style={styles.refuseText}>Refuser</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={[styles.approveBtn, { backgroundColor: theme.accent }]}
+                              onPress={() => respondToConfirmation(msg.id, true)}
+                              accessibilityRole="button">
+                              <Text style={[styles.approveText, { color: theme.onAccent }]}>Confirmer</Text>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      )}
                     </View>
-                  </TouchableOpacity>
+                  </View>
                 );
               })}
+
+              {isTyping && (
+                <View style={[styles.messageRow, styles.agentMessageRow]}>
+                  <MascotAvatar size={28} style={styles.messageAvatar} />
+                  <View style={[styles.bubble, styles.agentBubble]}>
+                    <Text
+                      style={[
+                        styles.bubbleText,
+                        styles.agentBubbleText,
+                        { fontStyle: 'italic', color: Colors.textMuted },
+                      ]}>
+                      {agent.name} réfléchit…
+                    </Text>
+                  </View>
+                </View>
+              )}
             </View>
           </TouchableWithoutFeedback>
         </ScrollView>
@@ -151,8 +221,9 @@ export default function ChatScreen() {
             {/* Plus Attach Button */}
             <TouchableOpacity
               style={styles.circleBtn}
-              onPress={() => showToast('Attach file')}
-              activeOpacity={0.7}>
+              onPress={() => showToast('Joindre un fichier')}
+              activeOpacity={0.7}
+              accessibilityLabel="Joindre un fichier">
               <HugeiconsIcon icon={Add01Icon} size={20} color={Colors.iconDark} strokeWidth={2.2} />
             </TouchableOpacity>
 
@@ -166,7 +237,7 @@ export default function ChatScreen() {
                   scrollViewRef.current?.scrollToEnd({ animated: true });
                 }, 100);
               }}
-              placeholder={`Message ${agent.name}`}
+              placeholder={`Envoyer un message à ${agent.name}…`}
               placeholderTextColor={Colors.iconMuted}
               returnKeyType="send"
               onSubmitEditing={handleSend}
@@ -177,14 +248,16 @@ export default function ChatScreen() {
               <TouchableOpacity
                 style={[styles.circleBtn, { backgroundColor: agent.color }]}
                 onPress={handleSend}
-                activeOpacity={0.8}>
+                activeOpacity={0.8}
+                accessibilityLabel="Envoyer">
                 <HugeiconsIcon icon={SentIcon} size={18} color={Colors.white} strokeWidth={2.4} />
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
                 style={styles.circleBtn}
-                onPress={() => showToast('Voice input')}
-                activeOpacity={0.7}>
+                onPress={() => showToast('Saisie vocale')}
+                activeOpacity={0.7}
+                accessibilityLabel="Saisie vocale">
                 <HugeiconsIcon icon={Mic01Icon} size={20} color={Colors.iconDark} strokeWidth={2} />
               </TouchableOpacity>
             )}
@@ -196,9 +269,75 @@ export default function ChatScreen() {
 }
 
 const styles = StyleSheet.create({
+  errorRow: {
+    alignSelf: 'center',
+    maxWidth: '92%',
+    backgroundColor: Colors.errorLight,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 12,
+  },
+  errorText: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontFamily: Typography.medium,
+    color: Colors.error,
+  },
+  confirmCard: {
+    marginTop: 10,
+    borderWidth: 1,
+    borderRadius: 14,
+    padding: 12,
+    backgroundColor: Colors.surfaceElevated,
+  },
+  confirmTitle: {
+    fontSize: 14,
+    fontFamily: Typography.semibold,
+    color: Colors.textPrimary,
+    marginBottom: 6,
+  },
+  confirmDetail: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontFamily: Typography.regular,
+    color: Colors.textSecondary,
+  },
+  confirmKey: {
+    fontFamily: Typography.semibold,
+  },
+  confirmActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 12,
+  },
+  refuseBtn: {
+    flex: 1,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  refuseText: {
+    fontSize: 14,
+    fontFamily: Typography.semibold,
+    color: Colors.textPrimary,
+  },
+  approveBtn: {
+    flex: 1,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  approveText: {
+    fontSize: 14,
+    fontFamily: Typography.semibold,
+  },
   container: {
     flex: 1,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.background,
   },
   content: {
     flex: 1,
@@ -221,15 +360,33 @@ const styles = StyleSheet.create({
     marginVertical: 14,
   },
   dateBadge: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.surface,
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 12,
   },
   dateBadgeText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#888',
+    fontFamily: Typography.semibold,
+    color: Colors.textMuted,
+  },
+  threadBadgeContainer: {
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  threadBadge: {
+    backgroundColor: Colors.surfaceElevated,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+    maxWidth: '85%',
+  },
+  threadBadgeText: {
+    fontSize: 11.5,
+    fontFamily: Typography.medium,
+    color: Colors.textSecondary,
   },
   messageRow: {
     marginBottom: 12,
@@ -250,44 +407,47 @@ const styles = StyleSheet.create({
     maxWidth: '82%',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderRadius: 20,
+    borderRadius: 24,
   },
   userBubble: {
     backgroundColor: Colors.chatBubbleUser,
-    borderBottomRightRadius: 6,
+    borderBottomRightRadius: 8,
   },
   agentBubble: {
     backgroundColor: Colors.chatBubbleAi,
-    borderBottomLeftRadius: 6,
+    borderWidth: 1,
+    borderColor: Colors.chatBubbleAiBorder,
+    borderBottomLeftRadius: 8,
   },
   bubbleText: {
     fontSize: 15.5,
+    fontFamily: Typography.regular,
     lineHeight: 22,
     letterSpacing: -0.1,
   },
   userBubbleText: {
-    color: '#3B2318',
-    fontWeight: '500',
+    color: Colors.userBubbleText,
+    fontFamily: Typography.medium,
   },
   agentBubbleText: {
     color: Colors.iconDark,
-    fontWeight: '400',
+    fontFamily: Typography.regular,
   },
   inputWrapper: {
     paddingHorizontal: 16,
     paddingBottom: Platform.OS === 'ios' ? 12 : 10,
     paddingTop: 6,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.background,
   },
   inputBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.surface,
     borderRadius: 26,
     paddingHorizontal: 8,
     paddingVertical: 6,
     borderWidth: 1,
-    borderColor: '#ECEEF0',
+    borderColor: Colors.border,
   },
   circleBtn: {
     width: 38,
@@ -299,6 +459,7 @@ const styles = StyleSheet.create({
   textInput: {
     flex: 1,
     fontSize: 15,
+    fontFamily: Typography.regular,
     color: Colors.iconDark,
     paddingHorizontal: 10,
     paddingVertical: Platform.OS === 'ios' ? 8 : 4,
